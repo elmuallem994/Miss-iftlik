@@ -2,26 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* تخصيص شريط التمرير في Chrome */
+.scroll-container::-webkit-scrollbar {
+  height: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.scroll-container::-webkit-scrollbar-thumb {
+  background-color: #ffa500; /* لون شريط التمرير */
+  border-radius: 10px;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+.scroll-container::-webkit-scrollbar-track {
+  background-color: #f1f1f1; /* لون خلفية المسار */
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* تخصيص شريط التمرير في Firefox */
+.scroll-container {
+  scrollbar-color: #ffa500 #f1f1f1; /* لون شريط التمرير والمسار */
+  scrollbar-width: thin; /* حجم الشريط */
 }
