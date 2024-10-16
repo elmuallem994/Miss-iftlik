@@ -1,7 +1,21 @@
 import Image from "next/image";
-import { featuredProducts } from "../data";
+import { ProductType } from "../types/types";
 
-const Featured = () => {
+const getData = async () => {
+  const res = await fetch("http://localhost:3000/api/products", {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed!");
+  }
+
+  return res.json();
+};
+
+const Featured = async () => {
+  const featuredProducts: ProductType[] = await getData();
+
   return (
     <div className="scroll-container  w-screen overflow-x-scroll text-orange-500">
       {/** WRAPPER */}

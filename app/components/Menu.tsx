@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import CartIcon from "./CartIcon";
+import UserLinks from "./UserLinks";
 
 const links = [
   { id: 1, title: "Ana sayfa", url: "/" },
@@ -15,7 +16,6 @@ const links = [
 const Menu = () => {
   const [open, setOpen] = useState(false);
 
-  const user = false;
   return (
     <div>
       {!open ? (
@@ -42,15 +42,7 @@ const Menu = () => {
               {item.title}
             </Link>
           ))}
-          {!user ? (
-            <Link href="/login" onClick={() => setOpen(false)}>
-              Giriş
-            </Link>
-          ) : (
-            <Link href="/orders" onClick={() => setOpen(false)}>
-              Siparişlerim
-            </Link>
-          )}
+          <UserLinks onClick={() => setOpen(false)} />
           <Link href="/cart" onClick={() => setOpen(false)}>
             <CartIcon />
           </Link>

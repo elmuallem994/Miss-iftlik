@@ -2,9 +2,9 @@ import Link from "next/link";
 import Menu from "./Menu";
 import CartIcon from "./CartIcon";
 import Image from "next/image";
+import UserLinks from "./UserLinks";
 
 const Navbar = () => {
-  const user = false;
   return (
     <div className="h-12 text-orange-500 p-4 flex items-center justify-between border-b-2 border-b-orange-500 uppercase md:h-24 lg:px-20 xl:px-40">
       {/** LIFT LINKS */}
@@ -28,12 +28,7 @@ const Navbar = () => {
           <Image src="/phone.png" alt="" width={20} height={20} />
           <span>123 456 78</span>
         </div>
-        {!user ? (
-          <Link href="/login">Giriş</Link>
-        ) : (
-          <Link href="/orders">Siparişlerim</Link>
-        )}
-
+        <UserLinks />
         <CartIcon />
       </div>
     </div>

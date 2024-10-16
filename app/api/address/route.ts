@@ -1,0 +1,90 @@
+// app/api/address/route.ts
+
+import { NextRequest, NextResponse } from "next/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
+import prisma from "@/utils/connect";
+
+// API لإنشاء عنوان جديد
+export async function POST(req: NextRequest) {
+  try {
+    const { il, ilce, mahalle, adres } = await req.json(); // جلب البيانات من الطلب
+
+    const { userId } = auth(); // جلب معرف المستخدم من Clerk
+
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    // تحقق مما إذا كان المستخدم موجودًا بالفعل في قاعدة البيانات
+    let user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    // إذا لم يكن المستخدم موجودًا، قم بإنشائه
+    if (!user) {
+      const clerkUser = await clerkClient.users.getUser(userId); // جلب بيانات المستخدم من Clerk
+      user = await prisma.user.create({
+        data: {
+          id: userId,
+          name: clerkUser.fullName || "Unknown Name",
+          email: clerkUser.emailAddresses[0]?.emailAddress || "Unknown Email",
+          phoneNumber:
+            clerkUser.phoneNumbers[0]?.phoneNumber || "Unknown Phone", // جلب أول رقم هاتف إذا كان موجودًا
+        },
+      });
+    }
+
+    // إنشاء عنوان جديد في قاعدة البيانات
+    const newAddress = await prisma.address.create({
+      data: {
+        il,
+        ilce,
+        mahalle,
+        adres,
+        userId, // ربط العنوان بمعرف المستخدم
+      },
+    });
+
+    return NextResponse.json(newAddress, { status: 201 });
+  } catch (error) {
+    console.log(error);
+    return NextResponse.json(
+      { message: "Error creating address", error },
+      { status: 500 }
+    );
+  }
+}
+
+// API لجلب جميع العناوين الخاصة بالمستخدم
+export async function GET() {
+  try {
+    const { userId } = auth(); // الحصول على معرف المستخدم من Clerk
+
+    // إذا كان المستخدم غير مسجل دخول
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    // جلب العناوين الخاصة بالمستخدم من قاعدة البيانات
+    const addresses = await prisma.address.findMany({
+      where: {
+        userId, // جلب العناوين التي تتطابق مع معرف المستخدم
+      },
+    });
+
+    return NextResponse.json(addresses, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Error fetching addresses", error },
+      { status: 500 }
+    );
+  }
+}

@@ -1,10 +1,37 @@
+import DeleteButton from "@/app/components/DeleteButton";
 import Price from "@/app/components/Price";
-import { singleProduct } from "@/app/data";
-
+import { ProductType } from "@/app/types/types";
 import Image from "next/image";
 import React from "react";
 
-const SingleProductPage = () => {
+const getData = async (id: string) => {
+  try {
+    const res = await fetch(`http://localhost:3000/api/products/${id}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch the product!");
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.log("Error fetching product:", error);
+    return null;
+  }
+};
+
+const SingleProductPage = async ({ params }: { params: { id: string } }) => {
+  const singleProduct: ProductType | null = await getData(params.id);
+
+  if (!singleProduct) {
+    return (
+      <div className="text-center text-red-500">
+        <h1>Product not found!</h1>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 lg:px-20 xl:px-40 h-screen flex flex-col justify-around text-orange-500 md:flex-row md:gap-8 md:items-center">
       {/* IMAGE CONTAINER */}
@@ -12,7 +39,7 @@ const SingleProductPage = () => {
         <div className="relative w-full h-1/2 md:h-[70%]">
           <Image
             src={singleProduct.img}
-            alt=""
+            alt="Product Image"
             className="object-contain"
             fill
           />
@@ -21,14 +48,11 @@ const SingleProductPage = () => {
       {/* TEXT CONTAINER */}
       <div className="h-1/2 flex flex-col gap-4 md:h-[70%] md:justify-center md:gap-6 xl:gap-8">
         <h1 className="text-3xl font-bold uppercase xl:text-5xl">
-          {singleProduct.title}
+          {singleProduct.title && <span>{singleProduct.title}</span>}
+          {singleProduct.id && <DeleteButton id={singleProduct.id} />}
         </h1>
         <p>{singleProduct.desc}</p>
-        <Price
-          price={singleProduct.price}
-          id={singleProduct.id}
-          options={singleProduct.options}
-        />
+        <Price product={singleProduct} />
       </div>
     </div>
   );
