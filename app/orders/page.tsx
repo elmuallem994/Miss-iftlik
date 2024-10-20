@@ -5,6 +5,7 @@ import { OrderType } from "../types/types";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 const OrdersPage = () => {
   const { user, isSignedIn } = useUser();
@@ -16,7 +17,7 @@ const OrdersPage = () => {
   }
 
   // التحقق مما إذا كان المستخدم مشرفًا
-  const isAdmin = user?.publicMetadata?.role === "admin";
+  const role = user?.publicMetadata?.role === "admin";
 
   const { isPending, error, data } = useQuery({
     queryKey: ["orders"],
@@ -64,9 +65,9 @@ const OrdersPage = () => {
             <th>Date</th>
             <th>Price</th>
             <th>Delivery Date</th> {/* عمود لعرض اليوم والتاريخ */}
-            {isAdmin && <th>User Info</th>} {/* يظهر فقط للمشرف */}
-            {isAdmin && <th>Address</th>} {/* عرض العنوان للمشرف فقط */}
-            {isAdmin && <th>Region</th>} {/* عرض اسم المنطقة للمشرف فقط */}
+            {role && <th>User Info</th>} {/* يظهر فقط للمشرف */}
+            {role && <th>Address</th>} {/* عرض العنوان للمشرف فقط */}
+            {role && <th>Region</th>} {/* عرض اسم المنطقة للمشرف فقط */}
             <th className="hidden md:block">Products</th>
             <th>Status</th>
           </tr>
@@ -89,7 +90,7 @@ const OrdersPage = () => {
               <td className="py-6 px-1">{item.deliveryDate}</td>
 
               {/* عرض User Info و Address و Region للمشرف فقط */}
-              {isAdmin && (
+              {role && (
                 <>
                   <td className="py-6 px-1">
                     <p>{item.user.name}</p>
@@ -116,7 +117,24 @@ const OrdersPage = () => {
               <td className="hidden md:block py-6 px-1">
                 {item.products[0].title}
               </td>
-              <td className="py-6 px-1">{item.status}</td>
+              {role ? (
+                <td>
+                  <form
+                    className="flex items-center justify-center gap-4"
+                    onSubmit={(e) => handleUpdate(e, item.id)}
+                  >
+                    <input
+                      placeholder={item.status}
+                      className="p-2 ring-1 ring-red-100 rounded-md"
+                    />
+                    <button className="bg-orange-400 p-2 rounded-full">
+                      <Image src="/edit.png" alt="" width={20} height={20} />
+                    </button>
+                  </form>
+                </td>
+              ) : (
+                <td className="py-6 px-1">{item.status}</td>
+              )}
             </tr>
           ))}
         </tbody>
