@@ -51,7 +51,10 @@ model Order {
   status       String
   region       Region?   @relation(fields: [regionId], references: [id])
   regionId     Int?
-  deliveryDate DateTime?
+  deliveryDate String?
+  address      Address?  @relation(fields: [addressId], references: [id])
+  addressId    Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -64,13 +67,19 @@ model Address {
   il         String   // City
   ilce       String   // District
   mahalle    String   // Neighborhood
-  adres      String   // Full address (can be a long text)
+  adres      String   // Full address
+  region     Region   @relation(fields: [regionId], references: [id]) // ربط العنوان بالمنطقة
+  regionId   Int
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Linking to User
-
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([regionId])
+  @@index([userId])
 }
+
 
 
 model User {
@@ -80,7 +89,6 @@ model User {
   email      String   @unique
   orders     Order[]
   addresses  Address[] // ربط المستخدم بالعناوين
-
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }  
@@ -90,6 +98,7 @@ model Region {
   name        String    @unique
   deliveryDays Json     // لتخزين الأيام كمصفوفة
   orders      Order[]
+  addresses  Address[] 
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

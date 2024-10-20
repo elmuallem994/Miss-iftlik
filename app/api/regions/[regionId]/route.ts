@@ -1,7 +1,58 @@
+// app/api/regions/[regionId]/route.ts
+
 import prisma from "@/utils/connect";
 import { NextRequest, NextResponse } from "next/server";
 
-// app/api/regions/[regionId]/route.ts
+// Fetch available delivery days for a specific region and its name from the database
+export const GET = async (
+  req: NextRequest,
+  { params }: { params: { regionId: string } }
+) => {
+  try {
+    const { regionId } = params;
+
+    // Fetch region data based on regionId
+    const region = await prisma.region.findUnique({
+      where: {
+        id: parseInt(regionId), // تأكد من تحويل regionId إلى عدد صحيح
+      },
+    });
+
+    if (!region) {
+      return NextResponse.json(
+        { message: "Region not found" },
+        { status: 404 }
+      );
+    }
+
+    const availableDays = region.deliveryDays; // الأيام المتاحة للتسليم
+
+    // تحويل الأيام إلى مصفوفة
+    let deliveryDaysArray: string[] = [];
+
+    if (typeof availableDays === "string") {
+      deliveryDaysArray = availableDays.split(",").map((day) => day.trim());
+    } else if (Array.isArray(availableDays)) {
+      deliveryDaysArray = availableDays.flatMap((day: any) =>
+        typeof day === "string"
+          ? day.split(",").map((d: string) => d.trim())
+          : []
+      );
+    }
+
+    // Return region name and available delivery days as an array
+    return NextResponse.json({
+      regionName: region.name, // اسم المنطقة
+      deliveryDays: deliveryDaysArray, // الأيام المتاحة بعد التحويل إلى مصفوفة
+    });
+  } catch (error) {
+    console.error("Error fetching region data:", error);
+    return NextResponse.json(
+      { message: "Error fetching region data" },
+      { status: 500 }
+    );
+  }
+};
 
 export async function PUT(
   req: NextRequest,

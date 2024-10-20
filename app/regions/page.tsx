@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,11 @@ type RegionType = {
   isNew?: boolean; // لتحديد ما إذا كانت المنطقة جديدة
 };
 
+type SavedRegionType = {
+  id: number;
+  name: string;
+};
+
 // أيام الأسبوع
 const allDays = [
   "Monday",
@@ -45,19 +51,28 @@ const ManageRegions = () => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null); // اليوم المحدد للتحديث
 
   // جلب المناطق من API عند تحميل الصفحة
-  useEffect(() => {
-    const fetchRegions = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/regions");
-        const data = await res.json();
-        setRegions(data); // تخزين البيانات المجلوبة في الحالة
-      } catch (error) {
-        console.error("Error fetching regions:", error);
+  // قم بإزالة useEffect وجلب البيانات باستخدام useQuery
+  const {
+    data: fetchedRegions,
+    error: fetchError,
+    isLoading,
+  } = useQuery({
+    queryKey: ["regions"],
+    queryFn: async () => {
+      const res = await fetch("http://localhost:3000/api/regions");
+      if (!res.ok) {
+        throw new Error("Failed to fetch regions");
       }
-    };
+      return res.json();
+    },
+  });
 
-    fetchRegions();
-  }, []);
+  // عند التحقق من جلب البيانات واستخدامها، استخدم fetchedRegions
+  useEffect(() => {
+    if (fetchedRegions) {
+      setRegions(fetchedRegions);
+    }
+  }, [fetchedRegions]);
 
   // طلب تغيير الأيام
   const handleDayChangeRequest = (region: RegionType, day: string) => {
@@ -166,7 +181,6 @@ const ManageRegions = () => {
   // حفظ المنطقة الجديدة
   const handleSave = async () => {
     const newRegions = regions.filter((region) => region.isNew);
-    const existingRegions = regions.filter((region) => !region.isNew);
 
     try {
       // حفظ المناطق الجديدة
@@ -188,7 +202,9 @@ const ManageRegions = () => {
             region.isNew
               ? {
                   ...region,
-                  id: savedRegions.find((r: any) => r.name === region.name).id,
+                  id: savedRegions.find(
+                    (r: SavedRegionType) => r.name === region.name
+                  ).id,
                   isNew: false,
                 }
               : region
@@ -202,6 +218,10 @@ const ManageRegions = () => {
       toast.error("An error occurred while saving the regions");
     }
   };
+
+  // الآن يمكنك استخدام حالة التحميل والخطأ في الواجهة
+  if (isLoading) return <p>Loading...</p>;
+  if (fetchError) return <p>Error loading regions: {fetchError.message}</p>;
 
   return (
     <div className="p-4">

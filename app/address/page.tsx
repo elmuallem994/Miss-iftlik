@@ -1,9 +1,7 @@
-// app/address/page.tsx
-
 "use client";
 
 import * as z from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -22,21 +20,45 @@ import {
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 
-// Zod schema
+// Define the Region type
+type Region = {
+  id: number;
+  name: string;
+};
+
+// Zod schema for form validation
 const addressSchema = z.object({
   il: z.string().min(1, { message: "Il (City) is required" }),
   ilce: z.string().min(1, { message: "Ilce (District) is required" }),
   mahalle: z.string().min(1, { message: "Mahalle (Neighborhood) is required" }),
   adres: z.string().min(1, { message: "Adres (Full Address) is required" }),
+  regionId: z.number().min(1, { message: "Region is required" }),
 });
 
 type AddressFormValues = z.infer<typeof addressSchema>;
 
 const AddressForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const [regions, setRegions] = useState<Region[]>([]); // Array of regions
   const { isSignedIn } = useUser();
   const router = useRouter();
 
+  // Fetch regions when the component mounts
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/regions"); // Fetch list of regions from the API
+        const data: Region[] = await res.json(); // Ensure the data is of the correct type
+        setRegions(data);
+      } catch (error) {
+        console.error("Error fetching regions:", error);
+      }
+    };
+
+    fetchRegions();
+  }, []);
+
+  // Initialize the form with react-hook-form and zod resolver
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
@@ -44,20 +66,24 @@ const AddressForm: React.FC = () => {
       ilce: "",
       mahalle: "",
       adres: "",
+      regionId: undefined, // Set to undefined instead of an empty string
     },
   });
 
+  // Handle form submission
   const onSubmit = async (data: AddressFormValues) => {
     if (!isSignedIn) {
       router.push("/sign-in");
     } else {
       try {
         setLoading(true);
-        // إرسال بيانات العنوان إلى الخادم لحفظها
         const res = await fetch("http://localhost:3000/api/address", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // البيانات المرسلة
+          body: JSON.stringify({
+            ...data,
+            regionId: data.regionId, // Send the selected region ID
+          }),
         });
 
         if (res.ok) {
@@ -87,7 +113,7 @@ const AddressForm: React.FC = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-8 w-full"
         >
-          {/* حقل المدينة (Il) */}
+          {/* City field (Il) */}
           <FormField
             control={form.control}
             name="il"
@@ -102,7 +128,34 @@ const AddressForm: React.FC = () => {
             )}
           />
 
-          {/* حقل المقاطعة (Ilce) */}
+          {/* Region field */}
+          <FormField
+            control={form.control}
+            name="regionId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Region (Select your region)</FormLabel>
+                <FormControl>
+                  <select
+                    disabled={loading}
+                    {...field}
+                    className="p-2 border rounded"
+                    onChange={(e) => field.onChange(Number(e.target.value))} // Convert the value to a number
+                  >
+                    <option value="">Select a region</option>
+                    {regions.map((region) => (
+                      <option key={region.id} value={region.id}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* District field (Ilce) */}
           <FormField
             control={form.control}
             name="ilce"
@@ -117,7 +170,7 @@ const AddressForm: React.FC = () => {
             )}
           />
 
-          {/* حقل الحي (Mahalle) */}
+          {/* Neighborhood field (Mahalle) */}
           <FormField
             control={form.control}
             name="mahalle"
@@ -136,7 +189,7 @@ const AddressForm: React.FC = () => {
             )}
           />
 
-          {/* حقل العنوان الكامل (Adres) */}
+          {/* Full Address field (Adres) */}
           <FormField
             control={form.control}
             name="adres"

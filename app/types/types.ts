@@ -16,6 +16,20 @@ export type ProductType = {
   options?: { title: string; additionalPrice: number }[];
 };
 
+export type UserType = {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+};
+
+// إضافة نوع البيانات RegionType
+export type RegionType = {
+  id: number;
+  name: string;
+  deliveryDays: string[]; // تخزين الأيام كمصفوفة JSON
+};
+
 export type OrderType = {
   id: string;
   userId: string;
@@ -23,7 +37,10 @@ export type OrderType = {
   products: CartItemType[];
   status: string;
   regionId?: number; // معرف المنطقة المرتبطة بالتوصيل
-  deliveryDate?: Date; // تاريخ التوصيل
+  deliveryDate?: string;
+  region: RegionType;
+  user: UserType; // تضمين معلومات المستخدم هنا
+  address: AddressType; // تضمين معلومات العنوان هنا
   createdAt: Date; // تاريخ إنشاء الطلب
   updatedAt: Date; // تاريخ آخر تحديث للطلب
 };
@@ -49,9 +66,15 @@ export type ActionTypes = {
   clearCart: () => void;
 };
 
-// إضافة نوع البيانات RegionType
-export type RegionType = {
+export type AddressType = {
   id: number;
-  name: string;
-  deliveryDays: string[]; // تخزين الأيام كمصفوفة JSON
+  il: string;
+  ilce: string;
+  mahalle: string;
+  adres: string;
+  region?: {
+    // إضافة الخاصية region
+    id: number;
+    name: string;
+  };
 };

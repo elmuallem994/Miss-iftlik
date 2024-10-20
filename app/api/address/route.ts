@@ -7,7 +7,7 @@ import prisma from "@/utils/connect";
 // API لإنشاء عنوان جديد
 export async function POST(req: NextRequest) {
   try {
-    const { il, ilce, mahalle, adres } = await req.json(); // جلب البيانات من الطلب
+    const { il, ilce, mahalle, adres, regionId } = await req.json(); // إضافة regionId
 
     const { userId } = auth(); // جلب معرف المستخدم من Clerk
 
@@ -39,6 +39,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // تحقق من صحة regionId
+    const region = await prisma.region.findUnique({
+      where: { id: regionId }, // تأكد من أن المعرف موجود
+    });
+
+    if (!region) {
+      return NextResponse.json(
+        { message: "Invalid region ID" },
+        { status: 400 }
+      );
+    }
+
     // إنشاء عنوان جديد في قاعدة البيانات
     const newAddress = await prisma.address.create({
       data: {
@@ -46,13 +58,14 @@ export async function POST(req: NextRequest) {
         ilce,
         mahalle,
         adres,
+        regionId, // إضافة معرف المنطقة
         userId, // ربط العنوان بمعرف المستخدم
       },
     });
 
     return NextResponse.json(newAddress, { status: 201 });
   } catch (error) {
-    console.log(error);
+    console.error("Error details:", error);
     return NextResponse.json(
       { message: "Error creating address", error },
       { status: 500 }
