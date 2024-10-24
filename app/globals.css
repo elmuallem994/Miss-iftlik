@@ -2,25 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* تخصيص شريط التمرير في Chrome */
-.scroll-container::-webkit-scrollbar {
-  height: 8px;
+/* globals.css */
+html,
+body {
+  height: 100%;
 }
 
-.scroll-container::-webkit-scrollbar-thumb {
-  background-color: #ffa500; /* لون شريط التمرير */
-  border-radius: 10px;
-}
-
-.scroll-container::-webkit-scrollbar-track {
-  background-color: #f1f1f1; /* لون خلفية المسار */
-}
-
-/* تخصيص شريط التمرير في Firefox */
-.scroll-container {
-  scrollbar-color: #ffa500 #f1f1f1; /* لون شريط التمرير والمسار */
-  scrollbar-width: thin; /* حجم الشريط */
-}
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -76,6 +63,7 @@
     --chart-5: 340 75% 55%;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
@@ -83,4 +71,54 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+}
+
+.footer {
+  margin-top: auto;
+}
+
+/* تخصيص شريط التمرير في Chrome */
+.scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background-color: #ffa500; /* لون شريط التمرير */
+  border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background-color: #f1f1f1; /* لون خلفية المسار */
+}
+
+/* تخصيص شريط التمرير في Firefox */
+.scroll-container {
+  scrollbar-color: #ffa500 #f1f1f1; /* لون شريط التمرير والمسار */
+  scrollbar-width: thin; /* حجم الشريط */
+}
+
+@keyframes blink {
+  0% {
+    background-color: #f71414e1; /* لون الخلفية الأول */
+  }
+  50% {
+    background-color: #f57e71; /* لون الخلفية الثاني */
+  }
+  100% {
+    background-color: #f71414e1; /* العودة إلى اللون الأول */
+  }
+}
+
+.animate-blink {
+  animation: blink 1s infinite; /* تطبيق تأثير الوميض */
 }

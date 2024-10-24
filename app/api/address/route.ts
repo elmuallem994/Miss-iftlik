@@ -101,3 +101,50 @@ export async function GET() {
     );
   }
 }
+
+// API لتعديل العنوان
+export async function PUT(req: NextRequest) {
+  try {
+    const { il, ilce, mahalle, adres, regionId } = await req.json(); // جلب بيانات العنوان المعدل
+    const { userId } = auth(); // جلب معرف المستخدم من Clerk
+
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User not authenticated!" },
+        { status: 401 }
+      );
+    }
+
+    // تحديث العنوان في قاعدة البيانات بناءً على معرف المستخدم
+    const updatedAddress = await prisma.address.updateMany({
+      where: {
+        userId, // جلب العنوان الذي يملكه المستخدم الحالي
+      },
+      data: {
+        il,
+        ilce,
+        mahalle,
+        adres,
+        regionId,
+      },
+    });
+
+    if (updatedAddress.count === 0) {
+      return NextResponse.json(
+        { message: "No address found to update!" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Address updated successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating address:", error);
+    return NextResponse.json(
+      { message: "Error updating address", error },
+      { status: 500 }
+    );
+  }
+}

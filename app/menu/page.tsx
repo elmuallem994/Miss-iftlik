@@ -1,5 +1,10 @@
+"use client"; // إضافة هذا في بداية الملف
+
 import Link from "next/link";
 import { MenuType } from "../types/types";
+import { useUser } from "@clerk/nextjs";
+import { FaEdit, FaTrash } from "react-icons/fa";
+import { useEffect, useState } from "react";
 
 const getData = async () => {
   const res = await fetch("http://localhost:3000/api/categories", {
@@ -13,21 +18,49 @@ const getData = async () => {
   return res.json();
 };
 
-const MenuPage = async () => {
-  const menu: MenuType = await getData();
+const MenuPage = () => {
+  const [menu, setMenu] = useState<MenuType>([]);
+  const { user } = useUser();
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      const data = await getData();
+      setMenu(data);
+    };
+    fetchMenu();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/categories/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setMenu((prev) => prev.filter((category) => category.id !== id));
+      } else {
+        console.error("Failed to delete category.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const isAdmin = user?.publicMetadata.role === "admin";
 
   return (
     <div className="p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex flex-col md:flex-row items-center ">
       {menu.map((category) => (
-        <Link
-          href={`/menu/${category.slug}`}
+        <div
           key={category.id}
-          className="w-full h-1/3 bg-cover p-8 md:h-1/2"
+          className="relative w-full h-1/3 bg-cover p-8 md:h-1/2"
           style={{ backgroundImage: `url(${category.img})` }}
         >
-          {/* إضافة الخلفية الرمادية الشفافة */}
+          <Link
+            href={`/menu/${category.slug}`}
+            className="absolute inset-0 z-10"
+          />
           <div className="relative flex flex-col justify-between text-orange-50 w-[75%] md:w-[80%] xl:w-[60%] 2xl:w-[55%] p-3 md:p-6 bg-orange-600 bg-opacity-40 rounded-md h-full">
-            {/* تعديل خلف النص */}
             <h1 className="uppercase font-bold text-lg lg:text-3xl">
               {category.title}
             </h1>
@@ -36,7 +69,24 @@ const MenuPage = async () => {
               Keşfet
             </button>
           </div>
-        </Link>
+          {isAdmin && (
+            <div className="absolute top-4 right-4 z-20 flex gap-2">
+              <button
+                onClick={() => handleDelete(category.id)}
+                className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+              >
+                <FaTrash className="w-4 h-4" /> {/* استبدال الرمز هنا */}
+              </button>
+              <Link
+                href={`/addCategoryForm/${category.id}`}
+                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700"
+              >
+                <FaEdit className="w-4 h-4" />{" "}
+                {/* هنا يتم استخدام أيقونة القلم */}
+              </Link>
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Separator } from "@/app/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -16,7 +16,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@/components/ui/alert-dialog";
+} from "@/app/components/ui/alert-dialog";
 import { toast } from "react-toastify";
 
 // تعريف النوع الخاص بالمناطق

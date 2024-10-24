@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/connect";
+import { auth } from "@clerk/nextjs/server";
 
 export const GET = async (
   req: NextRequest,

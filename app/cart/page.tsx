@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCartStore } from "@/utils/store";
+import { useCartStore, useLoadingStore } from "@/utils/store";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -14,18 +14,19 @@ import {
   AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
+} from "@/app/components/ui/alert-dialog";
 import { format, addDays, compareAsc, getDay } from "date-fns";
+import LoadingSpinner from "@/app/components/ui/loadingSpinner";
 
 const CartPage = () => {
   const [deliveryDays, setDeliveryDays] = useState<string[]>([]);
   const [deliveryDates, setDeliveryDates] = useState<Date[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null); // حالة الرسالة
   const { products, totalItems, totalPrice, removeFromCart } = useCartStore();
   const { isSignedIn, user } = useUser();
-
+  const setLoading = useLoadingStore((state) => state.setLoading);
+  const isLoading = useLoadingStore((state) => state.isLoading);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,7 +35,6 @@ const CartPage = () => {
 
   const calculateDeliveryDates = (days: string[]) => {
     const today = new Date();
-
     const dayMap: Record<string, number> = {
       Sunday: 0,
       Monday: 1,
@@ -48,9 +48,7 @@ const CartPage = () => {
     const dates = days.map((day) => {
       const targetDay = dayMap[day];
       const todayDay = getDay(today);
-
       const dayDifference = (targetDay + 7 - todayDay) % 7;
-
       return addDays(today, dayDifference === 0 ? 7 : dayDifference);
     });
 
@@ -66,9 +64,9 @@ const CartPage = () => {
           throw new Error("Please select a delivery day.");
         }
 
-        const regionId = await fetchRegionId(); // جلب معرف المنطقة
+        setLoading(true); // تفعيل حالة التحميل
 
-        // جلب عنوان المستخدم من API (التحقق إذا كان العنوان موجودًا)
+        const regionId = await fetchRegionId(); // جلب معرف المنطقة
         const addressResponse = await fetch(
           `http://localhost:3000/api/address/${user?.id}`
         );
@@ -79,13 +77,12 @@ const CartPage = () => {
           throw new Error("Address ID is missing.");
         }
 
-        // إرسال الطلب إلى API مع معلومات المستخدم الكاملة
         const res = await fetch("http://localhost:3000/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userData: {
-              id: user.id, // معرف المستخدم
+              id: user.id,
             },
             orderData: {
               price: totalPrice,
@@ -94,15 +91,15 @@ const CartPage = () => {
               deliveryDay: `${format(selectedDay, "EEEE")} - ${format(
                 selectedDay,
                 "yyyy-MM-dd"
-              )}`, // إرسال اليوم + التاريخ كـ string
-              regionId: regionId, // إرسال معرف المنطقة
-              addressId: addressId, // إرسال معرف العنوان
+              )}`,
+              regionId: regionId,
+              addressId: addressId,
             },
           }),
         });
 
         if (res.ok) {
-          useCartStore.getState().clearCart(); // دالة تصفير السلة
+          useCartStore.getState().clearCart();
           router.push("/success");
         } else {
           const errorData = await res.json();
@@ -110,6 +107,8 @@ const CartPage = () => {
         }
       } catch (err) {
         console.error("Something went wrong during the checkout process:", err);
+      } finally {
+        setLoading(false); // إيقاف حالة التحميل
       }
     }
   };
@@ -139,7 +138,7 @@ const CartPage = () => {
 
   const fetchDeliveryDays = async () => {
     try {
-      setLoading(true);
+      setLoading(true); // تفعيل حالة التحميل
       setError(null);
 
       const regionId = await fetchRegionId();
@@ -158,16 +157,14 @@ const CartPage = () => {
       setDeliveryDays(data.deliveryDays);
 
       const calculatedDates = calculateDeliveryDates(data.deliveryDays);
-
       const sortedDates = calculatedDates.sort(compareAsc);
       setDeliveryDates(sortedDates);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error) {
+      setError(error);
     } finally {
-      setLoading(false);
+      setLoading(false); // إيقاف حالة التحميل
     }
   };
-
   return (
     <div className="h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex flex-col text-orange-500 lg:flex-row">
       {/* PRODUCTS CONTAINER */}
@@ -200,7 +197,6 @@ const CartPage = () => {
           <span>Subtotal ({totalItems} items)</span>
           <span>${totalPrice}</span>
         </div>
-
         <div className="flex justify-between">
           <span>Teslimat Ucreti</span>
           <span className="text-green-500">FREE!</span>
@@ -210,7 +206,6 @@ const CartPage = () => {
           <span>TOPLAM (KDV DAHİL)</span>
           <span className="font-bold">${totalPrice}</span>
         </div>
-
         {/* Alert Dialog لعرض الأيام المتاحة */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -218,7 +213,7 @@ const CartPage = () => {
               onClick={fetchDeliveryDays}
               className="bg-orange-500 text-white p-3 rounded-md w-1/2 self-end mt-4"
             >
-              {loading ? "Loading..." : "ONAYLA"} {/* زر لفتح النافذة */}
+              ONAYLA
             </button>
           </AlertDialogTrigger>
 
@@ -231,7 +226,13 @@ const CartPage = () => {
             </AlertDialogHeader>
 
             {/* عرض الأيام المتاحة تحت بعضها */}
-            {deliveryDates.length > 0 ? (
+
+            {/* عرض مؤشر التحميل إذا كان جاري تحميل الأيام */}
+            {isLoading ? (
+              <div className="flex justify-center items-center p-4 ">
+                <LoadingSpinner />
+              </div>
+            ) : deliveryDates.length > 0 ? (
               <div>
                 {deliveryDates.map((date, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -274,6 +275,7 @@ const CartPage = () => {
             </div>
           </AlertDialogContent>
         </AlertDialog>
+        ;
       </div>
     </div>
   );

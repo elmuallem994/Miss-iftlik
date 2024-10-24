@@ -13,7 +13,6 @@ export type ProductType = {
   desc?: string;
   img?: string;
   price: number;
-  options?: { title: string; additionalPrice: number }[];
 };
 
 export type UserType = {

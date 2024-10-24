@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Image from "next/image";
+import LoadingSpinner from "@/app/components/ui/loadingSpinner";
 
 const OrdersPage = () => {
   const { user, isSignedIn } = useUser();
@@ -52,7 +53,7 @@ const OrdersPage = () => {
     toast.success("The order status has been changed!");
   };
 
-  if (isPending) return "Loading...";
+  if (isPending) return <LoadingSpinner />; // عرض مكون التحميل إذا كان جاري التحميل
 
   if (error) return "An error has occurred: " + error.message;
 

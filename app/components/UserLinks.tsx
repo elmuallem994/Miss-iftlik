@@ -9,6 +9,7 @@ const UserLinks = ({ onClick }: { onClick?: () => void }) => {
       {/* إذا كان المستخدم مسجل دخوله */}
       <SignedIn>
         <div className="flex items-center justify-center">
+          {/* استخدام Link مع onClick */}
           <Link className="mr-4" href="/orders" onClick={onClick}>
             Siparişlerim
           </Link>

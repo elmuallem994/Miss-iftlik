@@ -62,3 +62,13 @@ export const useCartStore = create(
     { name: "cart", skipHydration: true }
   )
 );
+
+type LoadingStoreType = {
+  isLoading: boolean;
+  setLoading: (loading: boolean) => void;
+};
+
+export const useLoadingStore = create<LoadingStoreType>((set) => ({
+  isLoading: false,
+  setLoading: (loading: boolean) => set({ isLoading: loading }),
+}));

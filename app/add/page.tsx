@@ -1,5 +1,3 @@
-// app/add/page.tsx
-
 "use client";
 
 import { useUser } from "@clerk/nextjs";
@@ -14,11 +12,6 @@ type Inputs = {
   catSlug: string;
 };
 
-type Option = {
-  title: string;
-  additionalPrice: number;
-};
-
 const AddPage = () => {
   const { isSignedIn, user } = useUser();
   const [inputs, setInputs] = useState<Inputs>({
@@ -28,13 +21,8 @@ const AddPage = () => {
     catSlug: "",
   });
 
-  const [option, setOption] = useState<Option>({
-    title: "",
-    additionalPrice: 0,
-  });
-
-  const [options, setOptions] = useState<Option[]>([]);
-  const [file, setFile] = useState<File>();
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null); // حالة لمعاينة الصورة
 
   const router = useRouter();
 
@@ -57,16 +45,15 @@ const AddPage = () => {
       return { ...prev, [e.target.name]: e.target.value };
     });
   };
-  const changeOption = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOption((prev) => {
-      return { ...prev, [e.target.name]: e.target.value };
-    });
-  };
 
   const handleChangeImg = (e: React.ChangeEvent<HTMLInputElement>) => {
     const target = e.target as HTMLInputElement;
-    const item = (target.files as FileList)[0];
-    setFile(item);
+    const selectedFile = (target.files as FileList)[0];
+    setFile(selectedFile);
+
+    // إنشاء معاينة للصورة المختارة
+    const filePreview = URL.createObjectURL(selectedFile);
+    setPreview(filePreview);
   };
 
   const upload = async () => {
@@ -96,7 +83,6 @@ const AddPage = () => {
         body: JSON.stringify({
           img: url,
           ...inputs,
-          options,
         }),
       });
 
@@ -128,7 +114,21 @@ const AddPage = () => {
             id="file"
             className="hidden"
           />
+
+          {/* عرض معاينة الصورة إذا كانت موجودة */}
+          {preview && (
+            <div className="mt-4  ">
+              <Image
+                src={preview}
+                alt="Uploaded Preview"
+                width={70} // حجم عرض الصورة المعاينة
+                height={70} // حجم ارتفاع الصورة المعاينة
+                className="object-cover aspect-square rounded-md"
+              />
+            </div>
+          )}
         </div>
+
         <div className="w-full flex flex-col gap-2 ">
           <label className="text-sm">Title</label>
           <input
@@ -168,47 +168,6 @@ const AddPage = () => {
             name="catSlug"
             onChange={handleChange}
           />
-        </div>
-        <div className="w-full flex flex-col gap-2">
-          <label className="text-sm">Options</label>
-          <div className="flex">
-            <input
-              className="ring-1 ring-red-200 p-4 rounded-sm placeholder:text-red-200 outline-none"
-              type="text"
-              placeholder="Title"
-              name="title"
-              onChange={changeOption}
-            />
-            <input
-              className="ring-1 ring-red-200 p-4 rounded-sm placeholder:text-red-200 outline-none"
-              type="number"
-              placeholder="Additional Price"
-              name="additionalPrice"
-              onChange={changeOption}
-            />
-            <button
-              className="bg-gray-500 p-2 text-white"
-              onClick={() => setOptions((prev) => [...prev, option])}
-            >
-              Add Option
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-4 mt-2">
-            {options.map((opt) => (
-              <div
-                key={opt.title}
-                className="p-2  rounded-md cursor-pointer bg-gray-200 text-gray-400"
-                onClick={() =>
-                  setOptions((prev) =>
-                    prev.filter((item) => item.title !== opt.title)
-                  )
-                }
-              >
-                <span>{opt.title}</span>
-                <span className="text-xs"> (+ ${opt.additionalPrice})</span>
-              </div>
-            ))}
-          </div>
         </div>
         <button
           type="submit"
