@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { useLoadingStore } from "@/utils/store";
 
 type AddPageProps = {
   productData?: {
@@ -57,6 +58,7 @@ const AddPage = ({ productData }: AddPageProps) => {
   const [categories, setCategories] = useState<
     { id: string; title: string; slug: string }[]
   >([]);
+  const { setLoading } = useLoadingStore();
 
   const router = useRouter();
 
@@ -120,6 +122,7 @@ const AddPage = ({ productData }: AddPageProps) => {
 
   const handleSubmit = async (data: ProductFormValues) => {
     try {
+      setLoading(true); // Start loading
       // If there's no image file and it's a new product, show an error message
       if (!file && !productData?.img) {
         toast.error("Please upload an image for the product.");
@@ -159,6 +162,8 @@ const AddPage = ({ productData }: AddPageProps) => {
     } catch (err) {
       console.log(err);
       toast.error("An error occurred while saving the product.");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 

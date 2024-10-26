@@ -7,7 +7,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import QueryProvider from "./components/QueryProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AddressAlert from "./components/AddressAlert";
 
 import "./globals.css";
 
@@ -25,12 +24,12 @@ export default function RootLayout({
     <ClerkProvider>
       <QueryProvider>
         <html lang="en">
-          <body className="bg-primary-black text-secondary-white antialiased">
+          {/** bg-primary-black text-secondary-white */}
+          <body className=" antialiased">
             <div className="main-container">
               <Notification />
               <Navbar />
               <LoadingHandler />
-              <AddressAlert />
               <div className="content">{children}</div>
               <Footer className="footer" />
             </div>

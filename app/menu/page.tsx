@@ -1,10 +1,11 @@
-"use client"; // إضافة هذا في بداية الملف
+"use client";
 
 import Link from "next/link";
 import { MenuType } from "../types/types";
 import { useUser } from "@clerk/nextjs";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { useLoadingStore } from "@/utils/store";
 
 const getData = async () => {
   const res = await fetch("http://localhost:3000/api/categories", {
@@ -21,16 +22,26 @@ const getData = async () => {
 const MenuPage = () => {
   const [menu, setMenu] = useState<MenuType>([]);
   const { user } = useUser();
+  const setLoading = useLoadingStore((state) => state.setLoading);
 
   useEffect(() => {
     const fetchMenu = async () => {
-      const data = await getData();
-      setMenu(data);
+      setLoading(true); // تفعيل مؤشر التحميل عند بدء جلب البيانات
+      try {
+        const data = await getData();
+        setMenu(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // إيقاف مؤشر التحميل عند الانتهاء
+      }
     };
+
     fetchMenu();
-  }, []);
+  }, [setLoading]);
 
   const handleDelete = async (id: string) => {
+    setLoading(true); // تفعيل مؤشر التحميل عند بدء عملية الحذف
     try {
       const res = await fetch(`http://localhost:3000/api/categories/${id}`, {
         method: "DELETE",
@@ -43,6 +54,8 @@ const MenuPage = () => {
       }
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setLoading(false); // إيقاف مؤشر التحميل عند الانتهاء
     }
   };
 
@@ -75,14 +88,13 @@ const MenuPage = () => {
                 onClick={() => handleDelete(category.id)}
                 className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
               >
-                <FaTrash className="w-4 h-4" /> {/* استبدال الرمز هنا */}
+                <FaTrash className="w-4 h-4" />
               </button>
               <Link
                 href={`/addCategoryForm/${category.id}`}
                 className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700"
               >
-                <FaEdit className="w-4 h-4" />{" "}
-                {/* هنا يتم استخدام أيقونة القلم */}
+                <FaEdit className="w-4 h-4" />
               </Link>
             </div>
           )}

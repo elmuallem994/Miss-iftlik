@@ -122,3 +122,20 @@ body {
 .animate-blink {
   animation: blink 1s infinite; /* تطبيق تأثير الوميض */
 }
+
+/* CSS Code for Green Blinking Effect */
+@keyframes blink-green {
+  0% {
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+  50% {
+    background-color: rgba(0, 255, 0, 0.4);
+  }
+  100% {
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+}
+
+.blink-green {
+  animation: blink-green 1.5s infinite; /* مدة التحريك 1.5 ثانية وتستمر بشكل متكرر */
+}

@@ -76,7 +76,7 @@ const OrdersPage = () => {
         <tbody>
           {data.map((item: OrderType) => (
             <tr
-              className={`${item.status !== "delivered" && "bg-red-50"}`}
+              className={`bg-red-50 blink-green`} // إضافة الوميض لجميع الحالات
               key={item.id}
             >
               <td className="hidden md:block py-6 px-1">

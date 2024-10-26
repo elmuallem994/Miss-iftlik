@@ -1,6 +1,7 @@
+// app/api/address/[userId]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/utils/connect";
-import { auth } from "@clerk/nextjs/server";
 
 export const GET = async (
   req: NextRequest,
@@ -22,10 +23,15 @@ export const GET = async (
       );
     }
 
-    // إرجاع addressId و regionId
+    // إرجاع جميع تفاصيل العنوان مع المنطقة
     return NextResponse.json({
-      addressId: address.id, // إضافة معرف العنوان إلى الاستجابة
-      regionId: address.regionId, // إرسال معرف المنطقة
+      addressId: address.id,
+      il: address.il,
+      ilce: address.ilce,
+      mahalle: address.mahalle,
+      adres: address.adres,
+      regionId: address.regionId,
+      regionName: address.region.name,
     });
   } catch (error) {
     return NextResponse.json(

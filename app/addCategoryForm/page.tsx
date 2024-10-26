@@ -1,4 +1,3 @@
-// components/AddCategoryForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -19,8 +18,9 @@ import {
 } from "@/app/components/ui/form";
 import { Separator } from "@/app/components/ui/separator";
 import { useRouter } from "next/navigation";
+import { useLoadingStore } from "@/utils/store"; // Import the store
 
-// Schema للتحقق من صحة البيانات
+// Schema for validation
 const categorySchema = z.object({
   title: z
     .string()
@@ -35,12 +35,11 @@ const categorySchema = z.object({
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
 const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
-  const [loading, setLoading] = useState(false);
+  const { isLoading, setLoading } = useLoadingStore(); // Destructure the state and the setter function
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const router = useRouter();
 
-  // إعداد React-Hook-Form
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
@@ -78,7 +77,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
 
   const onSubmit = async (data: CategoryFormValues) => {
     try {
-      setLoading(true);
+      setLoading(true); // Set loading to true
       let imgUrl = categoryData?.img || "";
 
       if (file) {
@@ -110,7 +109,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
       console.error(error);
       toast.error("حدث خطأ في الاتصال.");
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -122,7 +121,6 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
       <Separator className="mb-4" />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* حقل رفع الصورة */}
           <div className="w-full flex flex-col gap-2">
             <label
               className="text-sm cursor-pointer flex gap-4 items-center"
@@ -138,7 +136,6 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
               className="hidden"
             />
 
-            {/* عرض معاينة الصورة إذا كانت موجودة */}
             {preview && (
               <div className="mt-4">
                 <Image
@@ -161,7 +158,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
                 <FormControl>
                   <Input
                     placeholder="أدخل العنوان"
-                    disabled={loading}
+                    disabled={isLoading}
                     {...field}
                   />
                 </FormControl>
@@ -178,7 +175,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
                 <FormControl>
                   <Input
                     placeholder="أدخل الوصف"
-                    disabled={loading}
+                    disabled={isLoading}
                     {...field}
                   />
                 </FormControl>
@@ -195,7 +192,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
                 <FormControl>
                   <Input
                     placeholder="أدخل اللون"
-                    disabled={loading}
+                    disabled={isLoading}
                     {...field}
                   />
                 </FormControl>
@@ -212,7 +209,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
                 <FormControl>
                   <Input
                     placeholder="أدخل الـ Slug"
-                    disabled={loading}
+                    disabled={isLoading}
                     {...field}
                   />
                 </FormControl>
@@ -220,7 +217,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={isLoading}>
             {categoryData ? "حفظ التعديلات" : "إضافة الصنف"}
           </Button>
         </form>
