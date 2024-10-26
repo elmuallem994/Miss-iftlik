@@ -36,6 +36,7 @@ model Product {
   isFeatured Boolean  @default(false)
   category   Category @relation(fields: [catSlug], references: [slug])
   catSlug    String
+  orderItems OrderItem[] // الربط مع OrderItem
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,13 +47,14 @@ model Order {
   userId       String
   user         User     @relation(fields: [userId], references: [id]) // ربط الطلب بالمستخدم
   price        Decimal
-  products     Json
+ 
   status       String
   region       Region?   @relation(fields: [regionId], references: [id])
   regionId     Int?
   deliveryDate String?
   address      Address?  @relation(fields: [addressId], references: [id])
   addressId    Int?
+  orderItems   OrderItem[] // الربط مع OrderItem
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,6 +62,23 @@ model Order {
   @@index([userId])
   @@index([deliveryDate])  // فهرس لتسريع الاستعلامات حسب تاريخ التوصيل
 }
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  title     String
+  quantity  Int
+  price     Decimal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+}
+
 
 model Address {
   id         Int      @id @default(autoincrement())

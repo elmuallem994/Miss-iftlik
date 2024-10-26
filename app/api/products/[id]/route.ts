@@ -1,3 +1,5 @@
+// app/api/products/[id]/route.ts
+
 import prisma from "@/utils/connect";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,6 +22,63 @@ export const GET = async (
     });
   } catch (err) {
     console.log(err);
+    return new NextResponse(
+      JSON.stringify({ message: "Something went wrong!" }),
+      { status: 500 }
+    );
+  }
+};
+
+// PUT SINGLE PRODUCT (Update Product)
+export const PUT = async (
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) => {
+  const { id } = params;
+  const { userId } = auth(); // Get userId from Clerk's auth method
+
+  if (!userId) {
+    return new NextResponse(
+      JSON.stringify({ message: "User not authenticated!" }),
+      {
+        status: 401,
+      }
+    );
+  }
+
+  try {
+    // Get user information from Clerk
+    const user = await clerkClient.users.getUser(userId);
+
+    // Check if the user has the admin role using Clerk's publicMetadata
+    if (user?.publicMetadata?.role === "admin") {
+      // Parse the JSON body to get the updated product data
+      const body = await req.json();
+
+      // Update the product using Prisma
+      const updatedProduct = await prisma.product.update({
+        where: { id },
+        data: {
+          title: body.title,
+          desc: body.desc,
+          price: body.price,
+          img: body.img,
+          catSlug: body.catSlug,
+        },
+      });
+
+      return new NextResponse(JSON.stringify(updatedProduct), {
+        status: 200,
+      });
+    }
+
+    // If the user is not an admin, return a 403 Forbidden response
+    return new NextResponse(
+      JSON.stringify({ message: "You are not allowed!" }),
+      { status: 403 }
+    );
+  } catch (error) {
+    console.log(error);
     return new NextResponse(
       JSON.stringify({ message: "Something went wrong!" }),
       { status: 500 }

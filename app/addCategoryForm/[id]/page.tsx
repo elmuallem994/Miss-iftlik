@@ -1,12 +1,11 @@
 "use client";
 // app/addCategoryForm/[id]/page.tsx
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+
 import AddCategoryForm from "../page";
 
 const EditCategoryPage = ({ params }: { params: { id: string } }) => {
   const [categoryData, setCategoryData] = useState(null);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchCategoryData = async () => {

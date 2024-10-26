@@ -116,8 +116,13 @@ const OrdersPage = () => {
               )}
 
               <td className="hidden md:block py-6 px-1">
-                {item.products[0].title}
+                {item.orderItems.map((product) => (
+                  <div
+                    key={product.productId}
+                  >{`${product.title} x ${product.quantity}`}</div>
+                ))}
               </td>
+
               {role ? (
                 <td>
                   <form

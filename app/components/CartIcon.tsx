@@ -14,7 +14,7 @@ import { Button } from "./ui/button";
 
 const CartIcon = () => {
   const { user } = useUser(); // استخدم هوك Clerk لجلب المستخدم والتحقق من حالة المصادقة
-  const { totalItems } = useCartStore();
+  const { totalItems } = useCartStore((state) => state);
 
   useEffect(() => {
     useCartStore.persist.rehydrate();
@@ -51,7 +51,10 @@ const CartIcon = () => {
                 className="object-contain"
               />
             </div>
-            <span>Cart ({totalItems})</span>
+            <div className="cart-icon">
+              <span className="icon">🛒</span>
+              <span className="cart-count">({totalItems})</span>
+            </div>
           </div>
         </Link>
       )}

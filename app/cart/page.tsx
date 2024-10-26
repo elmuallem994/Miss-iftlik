@@ -19,6 +19,7 @@ import { format, addDays, compareAsc, getDay } from "date-fns";
 import LoadingSpinner from "@/app/components/ui/loadingSpinner";
 
 const CartPage = () => {
+  const [message, setMessage] = useState<string | null>(null); // حالة لتخزين الرسالة
   const [deliveryDays, setDeliveryDays] = useState<string[]>([]);
   const [deliveryDates, setDeliveryDates] = useState<Date[]>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -32,6 +33,49 @@ const CartPage = () => {
   useEffect(() => {
     useCartStore.persist.rehydrate();
   }, []);
+
+  useEffect(() => {
+    // التأكد من تحميل حالة المستخدم بشكل كامل
+    if (!isSignedIn && user === undefined) return; // عدم اتخاذ أي إجراء حتى يتم تحميل حالة المستخدم
+
+    if (!isSignedIn) {
+      setMessage("يرجى تسجيل الدخول للوصول إلى صفحة السلة. سيتم توجيهك الآن.");
+      setTimeout(() => {
+        router.push("/sign-in");
+      }, 2000); // انتظار 3 ثوانٍ قبل التوجيه
+      return;
+    }
+
+    // التحقق من وجود عنوان
+    const checkAddress = async () => {
+      try {
+        const addressResponse = await fetch(
+          `http://localhost:3000/api/address/${user?.id}`
+        );
+        const addressData = await addressResponse.json();
+        const addressId = addressData?.addressId;
+
+        if (!addressId) {
+          setMessage(
+            "يرجى إضافة عنوان للمتابعة. سيتم توجيهك الآن إلى صفحة العنوان."
+          );
+          setTimeout(() => {
+            router.push("/address");
+          }, 2000); // انتظار 3 ثوانٍ قبل التوجيه
+        }
+      } catch (err) {
+        console.error("Error fetching user address:", err);
+        setMessage(
+          "حدث خطأ أثناء التحقق من العنوان. سيتم توجيهك الآن إلى صفحة العنوان."
+        );
+        setTimeout(() => {
+          router.push("/address");
+        }, 2000); // انتظار 3 ثوانٍ قبل التوجيه
+      }
+    };
+
+    checkAddress();
+  }, [isSignedIn, user, router]);
 
   const calculateDeliveryDates = (days: string[]) => {
     const today = new Date();
@@ -86,7 +130,12 @@ const CartPage = () => {
             },
             orderData: {
               price: totalPrice,
-              products,
+              products: products.map((product) => ({
+                id: product.id,
+                title: product.title, // إضافة اسم المنتج
+                quantity: product.quantity, // العدد المطلوب من المنتج
+                price: product.price,
+              })),
               status: "Pending",
               deliveryDay: `${format(selectedDay, "EEEE")} - ${format(
                 selectedDay,
@@ -167,6 +216,12 @@ const CartPage = () => {
   };
   return (
     <div className="h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex flex-col text-orange-500 lg:flex-row">
+      {message && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-auto bg-red-500 text-white text-center p-8 z-50 rounded-md">
+          {message}
+        </div>
+      )}
+
       {/* PRODUCTS CONTAINER */}
       <div className="h-1/2 p-4 flex flex-col justify-center overflow-scroll lg:h-full lg:w-2/3 2xl:w-1/2 lg:px-20 xl:px-40">
         {products.map((item) => (
@@ -180,7 +235,7 @@ const CartPage = () => {
               </h1>
               <span>{item.optionTitle}</span>
             </div>
-            <h2 className="font-bold">${item.price}</h2>
+            <h2 className="font-bold">{item.price} TL</h2>
             <span
               className="cursor-pointer"
               onClick={() => removeFromCart(item)}
@@ -195,7 +250,7 @@ const CartPage = () => {
       <div className="h-1/2 p-4 bg-orange-50 flex flex-col gap-4 justify-center lg:h-full lg:w-1/3 2xl:w-1/2 lg:px-20 xl:px-40 2xl:text-xl 2xl:gap-6">
         <div className="flex justify-between">
           <span>Subtotal ({totalItems} items)</span>
-          <span>${totalPrice}</span>
+          <span>{totalPrice} TL</span>
         </div>
         <div className="flex justify-between">
           <span>Teslimat Ucreti</span>
@@ -204,7 +259,7 @@ const CartPage = () => {
         <hr className="my-2" />
         <div className="flex justify-between">
           <span>TOPLAM (KDV DAHİL)</span>
-          <span className="font-bold">${totalPrice}</span>
+          <span className="font-bold">{totalPrice} TL</span>
         </div>
         {/* Alert Dialog لعرض الأيام المتاحة */}
         <AlertDialog>
@@ -275,7 +330,6 @@ const CartPage = () => {
             </div>
           </AlertDialogContent>
         </AlertDialog>
-        ;
       </div>
     </div>
   );

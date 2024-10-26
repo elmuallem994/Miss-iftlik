@@ -14,6 +14,7 @@ export const useCartStore = create(
       products: INITIAL_STATE.products,
       totalItems: INITIAL_STATE.totalItems,
       totalPrice: INITIAL_STATE.totalPrice,
+
       addToCart(item) {
         const products = get().products;
         const productInState = products.find(
@@ -24,31 +25,76 @@ export const useCartStore = create(
           const updatedProducts = products.map((product) =>
             product.id === productInState.id
               ? {
-                  ...item,
-                  quantity: item.quantity + product.quantity,
-                  price: item.price + product.price,
+                  ...product,
+                  quantity: product.quantity + item.quantity,
                 }
-              : item
+              : product
           );
           set((state) => ({
             products: updatedProducts,
             totalItems: state.totalItems + item.quantity,
-            totalPrice: state.totalPrice + item.price,
+            totalPrice: state.totalPrice + item.price * item.quantity, // إضافة إجمالي السعر بناءً على الكمية
           }));
         } else {
           set((state) => ({
             products: [...state.products, item],
             totalItems: state.totalItems + item.quantity,
-            totalPrice: state.totalPrice + item.price,
+            totalPrice: state.totalPrice + item.price * item.quantity, // إضافة إجمالي السعر بناءً على الكمية
           }));
         }
       },
+
+      updateCartQuantity(productId: string, newQuantity: number) {
+        set((state) => {
+          const updatedProducts = state.products.map((product) => {
+            if (product.id === productId) {
+              return {
+                ...product,
+                quantity: newQuantity,
+              };
+            }
+            return product;
+          });
+
+          const newTotalItems = updatedProducts.reduce(
+            (sum, product) => sum + product.quantity,
+            0
+          );
+          const newTotalPrice = updatedProducts.reduce(
+            (sum, product) => sum + product.price * product.quantity, // حساب المجموع بناءً على السعر والكمية
+            0
+          );
+
+          return {
+            products: updatedProducts,
+            totalItems: newTotalItems,
+            totalPrice: newTotalPrice,
+          };
+        });
+      },
+
       removeFromCart(item) {
-        set((state) => ({
-          products: state.products.filter((product) => product.id !== item.id),
-          totalItems: state.totalItems - item.quantity,
-          totalPrice: state.totalPrice - item.price,
-        }));
+        set((state) => {
+          const updatedProducts = state.products.filter(
+            (product) => product.id !== item.id
+          );
+
+          // إعادة حساب إجمالي عدد المنتجات بعد إزالة المنتج
+          const newTotalItems = updatedProducts.reduce(
+            (sum, product) => sum + product.quantity,
+            0
+          );
+          const newTotalPrice = updatedProducts.reduce(
+            (sum, product) => sum + product.price * product.quantity,
+            0
+          );
+
+          return {
+            products: updatedProducts,
+            totalItems: newTotalItems,
+            totalPrice: newTotalPrice,
+          };
+        });
       },
 
       clearCart() {

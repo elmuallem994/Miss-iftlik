@@ -5,53 +5,98 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
-type Inputs = {
-  title: string;
-  desc: string;
-  price: number;
-  catSlug: string;
+import { toast } from "react-hot-toast";
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "../components/ui/form";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+
+type AddPageProps = {
+  productData?: {
+    id: string;
+    title: string;
+    desc: string;
+    price: number;
+    catSlug: string;
+    img?: string; // Add the 'img' field here
+  };
 };
 
-const AddPage = () => {
-  const { isSignedIn, user } = useUser();
-  const [inputs, setInputs] = useState<Inputs>({
-    title: "",
-    desc: "",
-    price: 0,
-    catSlug: "",
-  });
+const productSchema = z.object({
+  title: z.string().min(3, { message: "Title is required" }),
+  desc: z.string().min(5, { message: "Description is required" }),
+  price: z.preprocess(
+    (value) => parseFloat(z.string().parse(value)),
+    z.number().positive({ message: "Price must be a positive number" })
+  ),
+  catSlug: z.string().min(3, { message: "Category is required" }),
+});
 
+type ProductFormValues = z.infer<typeof productSchema>;
+
+const AddPage = ({ productData }: AddPageProps) => {
+  const { isSignedIn, user } = useUser();
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null); // حالة لمعاينة الصورة
+  const [preview, setPreview] = useState<string | null>(null);
+  const [categories, setCategories] = useState<
+    { id: string; title: string; slug: string }[]
+  >([]);
 
   const router = useRouter();
 
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      title: productData?.title || "",
+      desc: productData?.desc || "",
+      price: productData?.price || 0,
+      catSlug: productData?.catSlug || "",
+    },
+  });
+
   useEffect(() => {
     if (!isSignedIn) {
-      router.push("/sign-in"); // توجيه المستخدم لتسجيل الدخول إذا لم يكن مسجلاً دخوله
+      router.push("/sign-in");
     } else if (user?.publicMetadata.role !== "admin") {
-      router.push("/"); // توجيه المستخدم إلى الصفحة الرئيسية إذا لم يكن مشرفًا
+      router.push("/");
     }
+
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/categories");
+        if (!res.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await res.json();
+        setCategories(data);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to fetch categories.");
+      }
+    };
+
+    fetchCategories();
   }, [isSignedIn, user, router]);
 
-  if (!isSignedIn) {
-    return <p>Loading...</p>; // عرض رسالة التحميل أثناء التحقق من حالة الجلسة
-  }
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setInputs((prev) => {
-      return { ...prev, [e.target.name]: e.target.value };
-    });
-  };
-
   const handleChangeImg = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    const selectedFile = (target.files as FileList)[0];
+    const selectedFile = (e.target.files as FileList)[0];
     setFile(selectedFile);
-
-    // إنشاء معاينة للصورة المختارة
     const filePreview = URL.createObjectURL(selectedFile);
     setPreview(filePreview);
   };
@@ -73,109 +118,156 @@ const AddPage = () => {
     return resData.url;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSubmit = async (data: ProductFormValues) => {
     try {
-      const url = await upload();
-      const res = await fetch("http://localhost:3000/api/products", {
-        method: "POST",
-        body: JSON.stringify({
-          img: url,
-          ...inputs,
-        }),
-      });
+      // If there's no image file and it's a new product, show an error message
+      if (!file && !productData?.img) {
+        toast.error("Please upload an image for the product.");
+        return; // Stop execution if there's no image
+      }
 
-      const data = await res.json();
+      let imgUrl = productData?.img || ""; // Use existing image URL if no new image is uploaded
 
-      router.push(`/product/${data.id}`);
+      if (file) {
+        imgUrl = await upload();
+      }
+
+      const requestOptions = {
+        method: productData ? "PUT" : "POST",
+        body: JSON.stringify({ ...data, img: imgUrl }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      const url = productData
+        ? `http://localhost:3000/api/products/${productData.id}`
+        : "http://localhost:3000/api/products";
+
+      const res = await fetch(url, requestOptions);
+
+      if (res.ok) {
+        toast.success(
+          productData
+            ? "Product updated successfully!"
+            : "Product added successfully!"
+        );
+        router.push("/menu");
+      } else {
+        toast.error("Failed to save product.");
+      }
     } catch (err) {
       console.log(err);
+      toast.error("An error occurred while saving the product.");
     }
   };
 
   return (
-    <div className="p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex items-center justify-center text-red-500">
-      <form onSubmit={handleSubmit} className="flex flex-wrap gap-6">
-        <h1 className="text-4xl mb-2 text-gray-300 font-bold">
-          Add New Product
-        </h1>
-        <div className="w-full flex flex-col gap-2 ">
-          <label
-            className="text-sm cursor-pointer flex gap-4 items-center"
-            htmlFor="file"
-          >
-            <Image src="/upload.png" alt="" width={30} height={20} />
-            <span>Upload Image</span>
-          </label>
-          <input
-            type="file"
-            onChange={handleChangeImg}
-            id="file"
-            className="hidden"
-          />
-
-          {/* عرض معاينة الصورة إذا كانت موجودة */}
-          {preview && (
-            <div className="mt-4  ">
-              <Image
-                src={preview}
-                alt="Uploaded Preview"
-                width={70} // حجم عرض الصورة المعاينة
-                height={70} // حجم ارتفاع الصورة المعاينة
-                className="object-cover aspect-square rounded-md"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="w-full flex flex-col gap-2 ">
-          <label className="text-sm">Title</label>
-          <input
-            className="ring-1 ring-red-200 p-4 rounded-sm placeholder:text-red-200 outline-none"
-            type="text"
-            placeholder="Bella Napoli"
-            name="title"
-            onChange={handleChange}
-          />
-        </div>
-        <div className="w-full flex flex-col gap-2">
-          <label className="text-sm">Description</label>
-          <textarea
-            rows={3}
-            className="ring-1 ring-red-200 p-4 rounded-sm placeholder:text-red-200 outline-none"
-            placeholder="A timeless favorite with a twist, showcasing a thin crust topped with sweet tomatoes, fresh basil and creamy mozzarella."
-            name="desc"
-            onChange={handleChange}
-          />
-        </div>
-        <div className="w-full flex flex-col gap-2 ">
-          <label className="text-sm">Price</label>
-          <input
-            className="ring-1 ring-red-200 p-4 rounded-sm placeholder:text-red-200 outline-none"
-            type="number"
-            placeholder="29"
-            name="price"
-            onChange={handleChange}
-          />
-        </div>
-        <div className="w-full flex flex-col gap-2 ">
-          <label className="text-sm">Category</label>
-          <input
-            className="ring-1 ring-red-200 p-4 rounded-sm placeholder:text-red-200 outline-none"
-            type="text"
-            placeholder="pizzas"
-            name="catSlug"
-            onChange={handleChange}
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-red-500 p-4 text-white w-48 rounded-md relative h-14 flex items-center justify-center"
+    <div className="p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex items-center justify-center">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-4 w-full"
         >
-          Submit
-        </button>
-      </form>
+          <h1 className="text-4xl mb-2 text-gray-300 font-bold">
+            {productData ? "Edit Product" : "Add New Product"}
+          </h1>
+          <FormItem>
+            <FormLabel htmlFor="file">Upload Image</FormLabel>
+            <input
+              type="file"
+              onChange={handleChangeImg}
+              id="file"
+              className="hidden"
+            />
+            {preview && (
+              <div className="mt-4">
+                <Image
+                  src={preview}
+                  alt="Uploaded Preview"
+                  width={70}
+                  height={70}
+                  className="object-cover aspect-square rounded-md"
+                />
+              </div>
+            )}
+          </FormItem>
+
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Product Title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="desc"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Input placeholder="Product Description" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price</FormLabel>
+                <FormControl>
+                  <Input placeholder="Product Price" type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="catSlug"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => field.onChange(value)}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.slug}>
+                          {category.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {productData ? "Save Changes" : "Submit"}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 };

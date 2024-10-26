@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: ["class"],
@@ -10,6 +11,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Adding custom primary and secondary colors
+        "primary-black": "#212529",
+        "secondary-white": "#c7c7c7",
+        // Adding the existing colors from your configuration
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -58,6 +63,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };
 export default config;

@@ -3,64 +3,89 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { ProductType } from "../types/types";
+
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Trash2 } from "lucide-react"; // أيقونة سلة المهملات
 import { useCartStore } from "@/utils/store";
 
 const Price = ({ product }: { product: ProductType }) => {
-  const [total, setTotal] = useState(product.price); // سعر المنتج
   const [quantity, setQuantity] = useState(1); // عدد المنتجات
+  const [isEditing, setIsEditing] = useState(false); // حالة لتحديد ما إذا كانت الكمية قابلة للتحرير
 
-  const { addToCart } = useCartStore(); // استخدام الحالة لإدارة السلة
+  const { products, addToCart, updateCartQuantity, removeFromCart } =
+    useCartStore();
 
+  // التحقق مما إذا كان المنتج موجودًا في السلة عند التحميل
   useEffect(() => {
-    useCartStore.persist.rehydrate(); // استرجاع البيانات من التخزين المحلي عند التحميل
-  }, []);
+    const existingProduct = products.find((p) => p.id === product.id);
+    if (existingProduct) {
+      setQuantity(existingProduct.quantity);
+      setIsEditing(true); // إظهار التحكم في الكمية إذا كان المنتج موجودًا
+    }
+  }, [products, product.id]);
 
-  useEffect(() => {
-    setTotal(quantity * product.price); // تحديث السعر بناءً على الكمية
-  }, [quantity, product.price]);
+  const handleDecrease = () => {
+    if (quantity === 1) {
+      // إذا كانت الكمية 1، نقوم بإزالة المنتج
+      removeFromCart({
+        ...product,
+        quantity: quantity,
+      });
 
-  const handleCart = () => {
+      setIsEditing(false); // إخفاء التحكم عند الحذف
+    } else {
+      setQuantity((prev) => {
+        const newQuantity = prev - 1;
+        updateCartQuantity(product.id, newQuantity);
+        return newQuantity;
+      });
+    }
+  };
+
+  const handleIncrease = () => {
+    setQuantity((prev) => {
+      const newQuantity = prev + 1;
+      updateCartQuantity(product.id, newQuantity);
+      return newQuantity;
+    });
+  };
+
+  const handleAddToCart = () => {
     addToCart({
       id: product.id,
       title: product.title,
       img: product.img,
-      price: total,
-      quantity: quantity,
+      price: product.price,
+      quantity,
     });
-    toast.success("The product added to the cart!"); // إظهار رسالة تأكيد
+    setIsEditing(true); // إظهار التحكم في الكمية
+    toast.success("The product has been added to the cart!"); // إظهار رسالة تأكيد
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">${total}</h2>{" "}
-      {/* عرض السعر الإجمالي */}
-      {/* حاوية العدد وزر الإضافة للسلة */}
-      <div className="flex justify-between items-center">
-        {/* العدد */}
-        <div className="flex justify-between w-full p-3 ring-1 ring-red-500">
-          <span>Quantity</span>
-          <div className="flex gap-4 items-center">
-            <button
-              onClick={() => setQuantity((prev) => (prev > 1 ? prev - 1 : 1))} // تقليل العدد
-            >
-              {"<"}
-            </button>
-            <span>{quantity}</span> {/* عرض العدد */}
-            <button
-              onClick={() => setQuantity((prev) => (prev < 9 ? prev + 1 : 9))} // زيادة العدد
-            >
-              {">"}
-            </button>
-          </div>
+    <div className="flex flex-col gap-4 items-center">
+      {/* حاوية العدد */}
+      {isEditing ? (
+        <div className="flex items-center gap-2">
+          <Button variant="destructive" size="sm" onClick={handleDecrease}>
+            {quantity === 1 ? <Trash2 size={16} /> : "-"}
+          </Button>
+          <Input
+            value={quantity}
+            readOnly
+            className="w-12 text-center"
+            aria-label="Current quantity"
+          />
+          <Button variant="destructive" size="sm" onClick={handleIncrease}>
+            +
+          </Button>
         </div>
-        {/* زر الإضافة للسلة */}
-        <button
-          className="uppercase w-56 bg-red-500 text-white p-3 ring-1 ring-red-500"
-          onClick={handleCart}
-        >
-          Add to Cart
-        </button>
-      </div>
+      ) : (
+        <Button variant="default" onClick={handleAddToCart}>
+          أضف للسلة
+        </Button>
+      )}
     </div>
   );
 };

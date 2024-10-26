@@ -33,15 +33,23 @@ export type OrderType = {
   id: string;
   userId: string;
   price: number;
-  products: CartItemType[];
   status: string;
   regionId?: number; // معرف المنطقة المرتبطة بالتوصيل
   deliveryDate?: string;
   region: RegionType;
   user: UserType; // تضمين معلومات المستخدم هنا
   address: AddressType; // تضمين معلومات العنوان هنا
+  orderItems: OrderItemType[]; // إضافة الحقل الجديد للمنتجات
   createdAt: Date; // تاريخ إنشاء الطلب
   updatedAt: Date; // تاريخ آخر تحديث للطلب
+};
+
+export type OrderItemType = {
+  orderId: string; // معرف الطلب
+  productId: string; // معرف المنتج
+  title: string; // اسم المنتج
+  quantity: number; // الكمية المطلوبة
+  price: number; // سعر المنتج للطلب
 };
 
 export type CartItemType = {
@@ -63,6 +71,7 @@ export type ActionTypes = {
   addToCart: (item: CartItemType) => void;
   removeFromCart: (item: CartItemType) => void;
   clearCart: () => void;
+  updateCartQuantity: (productId: string, newQuantity: number) => void; // أضف هذا السطر
 };
 
 export type AddressType = {

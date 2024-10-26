@@ -2,6 +2,13 @@ import prisma from "@/utils/connect";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
+type OrderProduct = {
+  id: string;
+  title: string;
+  quantity: number;
+  price: number;
+};
+
 // FETCH ALL ORDERS
 export const GET = async () => {
   const { userId } = auth();
@@ -16,7 +23,7 @@ export const GET = async () => {
     const user = await clerkClient.users.getUser(userId);
 
     if (user.publicMetadata.role === "admin") {
-      // جلب جميع الطلبات مع معلومات المستخدم المرتبطة
+      // جلب جميع الطلبات مع معلومات المستخدم والعناوين والعناصر المرتبطة
       const orders = await prisma.order.findMany({
         include: {
           user: true,
@@ -26,14 +33,18 @@ export const GET = async () => {
             },
           },
           region: true, // إذا كانت المنطقة مرتبطة مباشرة بالطلب
+          orderItems: true, // تضمين العناصر المرتبطة بالطلب
         },
       });
       return new NextResponse(JSON.stringify(orders), { status: 200 });
     }
 
-    // جلب الطلبات الخاصة بالمستخدم المسجل فقط مع معلومات المستخدم المرتبطة
+    // جلب الطلبات الخاصة بالمستخدم المسجل فقط مع معلومات المستخدم والعناوين والعناصر المرتبطة
     const orders = await prisma.order.findMany({
       where: { userId },
+      include: {
+        orderItems: true, // تضمين العناصر المرتبطة بالطلب
+      },
     });
 
     return new NextResponse(JSON.stringify(orders), { status: 200 });
@@ -64,13 +75,24 @@ export const POST = async (req: NextRequest) => {
       data: {
         userId: userData.id,
         price: orderData.price,
-        products: orderData.products,
         status: orderData.status,
         regionId: orderData.regionId,
         deliveryDate: orderData.deliveryDay,
         addressId: orderData.addressId, // تأكد من أنك تتعامل مع معرف العنوان هنا إذا لزم الأمر
       },
     });
+
+    // إنشاء السجلات في جدول OrderItems لكل منتج في الطلب
+    const orderItems = orderData.products.map((product: OrderProduct) => ({
+      orderId: order.id,
+      productId: product.id,
+      title: product.title,
+      quantity: product.quantity,
+      price: product.price,
+    }));
+
+    // حفظ السجلات في جدول OrderItems
+    await prisma.orderItem.createMany({ data: orderItems });
 
     return new NextResponse(JSON.stringify(order), { status: 201 });
   } catch (err) {
