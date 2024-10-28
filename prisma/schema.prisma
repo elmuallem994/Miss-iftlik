@@ -55,6 +55,7 @@ model Order {
   address      Address?  @relation(fields: [addressId], references: [id])
   addressId    Int?
   orderItems   OrderItem[] // الربط مع OrderItem
+  recipientInfo  String?    // حقل يحتوي على اسم ورقم المستلم بشكل نصي
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,8 +84,7 @@ model OrderItem {
 model Address {
   id         Int      @id @default(autoincrement())
   il         String   // City
-  ilce       String   // District
-  mahalle    String   // Neighborhood
+  neighborhoods   String   
   adres      String   // Full address
   region     Region   @relation(fields: [regionId], references: [id]) // ربط العنوان بالمنطقة
   regionId   Int
@@ -93,10 +93,12 @@ model Address {
   orders     Order[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  isRegionAvailable Boolean? @default(true) // إضافة هذا الحقل للإشارة إلى توفر المنطقة
 
   @@index([regionId])
   @@index([userId])
 }
+
 
 
 
@@ -113,11 +115,17 @@ model User {
 
 model Region {
   id          Int       @id @default(autoincrement())
-  name        String    @unique
+  name        String 
   deliveryDays Json     // لتخزين الأيام كمصفوفة
+  neighborhoods String // 
+  startTime   String    // وقت بدء التوصيل
+  endTime     String    // وقت نهاية التوصيل
   orders      Order[]
-  addresses  Address[] 
+  addresses   Address[] 
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+    @@unique([name, neighborhoods])
 }
+

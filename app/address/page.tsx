@@ -33,14 +33,14 @@ import { Button } from "../components/ui/button";
 type Region = {
   id: number;
   name: string;
+  neighborhoods: string[] | null;
 };
 
 // Zod schema for form validation
 const addressSchema = z.object({
   il: z.string().min(1, { message: "Il (City) is required" }),
-  ilce: z.string().min(1, { message: "Ilce (District) is required" }),
-  mahalle: z.string().min(1, { message: "Mahalle (Neighborhood) is required" }),
   adres: z.string().min(1, { message: "Adres (Full Address) is required" }),
+  neighborhoods: z.string().min(1, { message: "Region is required" }),
   regionId: z.number().min(1, { message: "Region is required" }),
 });
 
@@ -53,14 +53,14 @@ const AddressPage: React.FC = () => {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [address, setAddress] = useState<AddressFormValues | null>(null);
+  const [neighborhoods, setNeighborhoods] = useState<string[]>([]); // Array of neighborhoods
 
   // Initialize the form with react-hook-form and zod resolver
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
       il: address?.il || "",
-      ilce: address?.ilce || "",
-      mahalle: address?.mahalle || "",
+      neighborhoods: address?.neighborhoods,
       adres: address?.adres || "",
       regionId: address?.regionId || undefined,
     },
@@ -72,7 +72,13 @@ const AddressPage: React.FC = () => {
       try {
         const res = await fetch("http://localhost:3000/api/regions");
         const data: Region[] = await res.json();
-        setRegions(data);
+
+        // Filter unique regions based on name
+        const uniqueRegions = Array.from(
+          new Set(data.map((region) => region.name))
+        ).map((name) => data.find((region) => region.name === name));
+
+        setRegions(uniqueRegions as Region[]);
       } catch (error) {
         console.error("Error fetching regions:", error);
       }
@@ -82,16 +88,13 @@ const AddressPage: React.FC = () => {
       try {
         const res = await fetch("http://localhost:3000/api/address");
         if (res.ok) {
-          const data: AddressFormValues[] = await res.json(); // جلب البيانات كمصفوفة
+          const data: AddressFormValues[] = await res.json();
           if (data.length > 0) {
-            setAddress(data[0]); // تعيين العنصر الأول إلى حالة address
-            form.reset(data[0]); // تحديث القيم الافتراضية للنموذج
+            setAddress(data[0]);
+            form.reset(data[0]);
           } else {
-            console.error("No address found");
-            setIsEditModalOpen(true); // فتح النافذة المنبثقة إذا لم يكن هناك عنوان
+            setIsEditModalOpen(true);
           }
-        } else {
-          console.error("Failed to fetch address:", res.status);
         }
       } catch (error) {
         console.error("Error fetching address:", error);
@@ -100,7 +103,27 @@ const AddressPage: React.FC = () => {
 
     fetchRegions();
     fetchAddress();
-  }, [form]); // إضافة `form` كـ dependency
+  }, [form]);
+
+  // Function to fetch neighborhoods when selecting a region
+  const fetchNeighborhoods = async (regionId: string) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/regions/${regionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        console.log("Fetched Neighborhoods: ", data.neighborhoods);
+
+        // Ensure neighborhoods is set to an array, even if it's empty
+        setNeighborhoods(
+          Array.isArray(data.neighborhoods) ? data.neighborhoods : []
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching neighborhoods:", error);
+      // Set neighborhoods to an empty array on error
+      setNeighborhoods([]);
+    }
+  };
 
   // Handle form submission for creating a new address
   const createAddress = async (data: AddressFormValues) => {
@@ -116,7 +139,7 @@ const AddressPage: React.FC = () => {
         });
 
         if (res.ok) {
-          setAddress(data); // تعيين العنوان في الحالة
+          setAddress(data);
           toast.success("تم إنشاء العنوان بنجاح");
           setIsEditModalOpen(false);
           router.refresh();
@@ -204,13 +227,10 @@ const AddressPage: React.FC = () => {
                 <strong className="text-gray-800 p-2 ">Şehir:</strong>{" "}
                 {address.il}
               </p>
-              <p>
-                <strong className="text-gray-800 p-2">İlçe:</strong>{" "}
-                {address.ilce}
-              </p>
+
               <p>
                 <strong className="text-gray-800 p-2">Mahalle:</strong>{" "}
-                {address.mahalle}
+                {address.neighborhoods}
               </p>
               <p>
                 <strong className="text-gray-800 p-2">Tam Adres:</strong>{" "}
@@ -270,7 +290,11 @@ const AddressPage: React.FC = () => {
                         disabled={loading}
                         {...field}
                         className="p-2 border rounded"
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => {
+                          const selectedRegionId = Number(e.target.value); // Convert value to number
+                          field.onChange(selectedRegionId); // Update form state with number
+                          fetchNeighborhoods(selectedRegionId.toString()); // Fetch neighborhoods with a string representation
+                        }}
                       >
                         <option value="">Select a region</option>
                         {regions.map((region) => (
@@ -287,34 +311,29 @@ const AddressPage: React.FC = () => {
 
               <FormField
                 control={form.control}
-                name="ilce"
+                name="neighborhoods"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ilce (District)</FormLabel>
+                    <FormLabel>neighborhoods (Neighborhood)</FormLabel>
                     <FormControl>
-                      <Input
+                      <select
                         disabled={loading}
-                        placeholder="District"
                         {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="mahalle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mahalle (Neighborhood)</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Neighborhood"
-                        {...field}
-                      />
+                        className="p-2 border rounded"
+                        onChange={(e) => field.onChange(e.target.value)}
+                      >
+                        <option value="">Select a neighborhood</option>
+                        {Array.isArray(neighborhoods) &&
+                        neighborhoods.length > 0 ? (
+                          neighborhoods.map((neighborhood) => (
+                            <option key={neighborhood} value={neighborhood}>
+                              {neighborhood}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="">All neighborhoods available</option>
+                        )}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

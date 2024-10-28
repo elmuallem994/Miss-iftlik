@@ -27,8 +27,7 @@ export const GET = async (
     return NextResponse.json({
       addressId: address.id,
       il: address.il,
-      ilce: address.ilce,
-      mahalle: address.mahalle,
+      neighborhoods: address.neighborhoods,
       adres: address.adres,
       regionId: address.regionId,
       regionName: address.region.name,

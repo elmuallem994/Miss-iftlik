@@ -7,15 +7,18 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import LoadingSpinner from "@/app/components/ui/loadingSpinner";
+import { useEffect } from "react";
 
 const OrdersPage = () => {
   const { user, isSignedIn } = useUser();
   const router = useRouter();
 
   // التحقق مما إذا كان المستخدم غير مسجل دخوله
-  if (!isSignedIn) {
-    router.push("/sign-in");
-  }
+  useEffect(() => {
+    if (!isSignedIn) {
+      router.push("/sign-in");
+    }
+  }, [isSignedIn, router]);
 
   // التحقق مما إذا كان المستخدم مشرفًا
   const role = user?.publicMetadata?.role === "admin";
@@ -63,14 +66,15 @@ const OrdersPage = () => {
         <thead>
           <tr className="text-left">
             <th className="hidden md:block">Order ID</th>
-            <th>Date</th>
-            <th>Price</th>
-            <th>Delivery Date</th> {/* عمود لعرض اليوم والتاريخ */}
-            {role && <th>User Info</th>} {/* يظهر فقط للمشرف */}
-            {role && <th>Address</th>} {/* عرض العنوان للمشرف فقط */}
-            {role && <th>Region</th>} {/* عرض اسم المنطقة للمشرف فقط */}
-            <th className="hidden md:block">Products</th>
-            <th>Status</th>
+            <th> انشاء الطلب </th>
+            {role && <th>معلومات تسجيل الدخول</th>} {/* يظهر فقط للمشرف */}
+            <th>تاريخ التسليم</th> {/* عمود لعرض اليوم والتاريخ */}
+            <th>معلومات المستلم</th>
+            {role && <th>العنوان</th>} {/* عرض العنوان للمشرف فقط */}
+            {role && <th>المنطقة</th>} {/* عرض اسم المنطقة للمشرف فقط */}
+            <th className="hidden md:block">المنتجات</th>
+            <th>السعر</th>
+            <th>حالة الطلب</th>
           </tr>
         </thead>
         <tbody>
@@ -80,24 +84,32 @@ const OrdersPage = () => {
               key={item.id}
             >
               <td className="hidden md:block py-6 px-1">
-                {item.id.replace(/\D/g, "").slice(-4)}{" "}
+                #{item.id.replace(/\D/g, "").slice(-4)}{" "}
                 {/* إزالة الحروف وعرض آخر 4 أرقام فقط */}
               </td>
 
               <td className="py-6 px-1">
                 {item.createdAt.toString().slice(0, 10)}
               </td>
-              <td className="py-6 px-1">{item.price}</td>
+
+              {role && (
+                <td className="py-6 px-1">
+                  <p>{item.user.name}</p>
+                  <p>{item.user.email}</p>
+                  <p>{item.user.phoneNumber}</p>
+                </td>
+              )}
+
               <td className="py-6 px-1">{item.deliveryDate}</td>
+
+              <td className="py-6 px-1">
+                <p>{item.recipientInfo}</p>{" "}
+                {/* Displaying recipient information */}
+              </td>
 
               {/* عرض User Info و Address و Region للمشرف فقط */}
               {role && (
                 <>
-                  <td className="py-6 px-1">
-                    <p>{item.user.name}</p>
-                    <p>{item.user.email}</p>
-                    <p>{item.user.phoneNumber}</p>
-                  </td>
                   <td className="py-6 px-1">
                     {item.address && (
                       <>
@@ -109,6 +121,7 @@ const OrdersPage = () => {
                       </>
                     )}
                   </td>
+
                   <td className="py-6 px-1">
                     {item.address?.region?.name || "Region data not available"}
                   </td>
@@ -122,6 +135,7 @@ const OrdersPage = () => {
                   >{`${product.title} x ${product.quantity}`}</div>
                 ))}
               </td>
+              <td className="py-6 px-1">{item.price}</td>
 
               {role ? (
                 <td>

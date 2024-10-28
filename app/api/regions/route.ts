@@ -16,38 +16,55 @@ export async function GET() {
   }
 }
 
-// Create a new region with deliveryDays stored as JSON array
-export async function POST(req: NextRequest) {
+// POST endpoint in your API file
+// POST endpoint in your API file
+export const POST = async (req: NextRequest) => {
   try {
-    const regionsToAdd = await req.json();
+    const { name, deliveryDays, neighborhoods, startTime, endTime } =
+      await req.json();
 
-    // قائمة المناطق الجديدة التي لم تُضاف بعد
-    const newRegions = [];
-
-    for (const region of regionsToAdd) {
-      const existingRegion = await prisma.region.findUnique({
-        where: { name: region.name },
-      });
-
-      // إذا لم تكن المنطقة موجودة بالفعل، قم بإضافتها
-      if (!existingRegion) {
-        const newRegion = await prisma.region.create({
-          data: {
-            name: region.name,
-            deliveryDays: region.deliveryDays, // تخزين الأيام الجديدة
-          },
-        });
-        newRegions.push(newRegion);
-      }
+    // تحقق من أن البيانات الأساسية موجودة
+    if (!name || !deliveryDays || !startTime || !endTime) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(newRegions, { status: 201 });
+    // التحقق فقط من وجود نفس الحي بدون التحقق من المنطقة
+    const existingNeighborhood = await prisma.region.findFirst({
+      where: {
+        neighborhoods: neighborhoods, // التحقق من الحي فقط إذا كان محددًا
+      },
+    });
+
+    // إذا كان اسم الحي موجودًا بالفعل
+    if (existingNeighborhood) {
+      return NextResponse.json(
+        {
+          message: "Neighborhood already exists",
+        },
+        { status: 409 }
+      );
+    }
+
+    // إضافة المنطقة الجديدة
+    const newRegion = await prisma.region.create({
+      data: {
+        name,
+        deliveryDays, // يتم تخزينها كـ JSON تلقائيًا
+        neighborhoods: neighborhoods || null,
+        startTime,
+        endTime,
+      },
+    });
+
+    return NextResponse.json(newRegion, { status: 201 });
   } catch (error) {
-    console.error("Error creating regions:", error);
+    console.error("Error creating region:", error);
     return NextResponse.json(
-      { message: "Error creating regions" },
+      { message: "Error creating region" },
       { status: 500 }
     );
   }
-}
-
+};

@@ -76,9 +76,10 @@ export const POST = async (req: NextRequest) => {
         userId: userData.id,
         price: orderData.price,
         status: orderData.status,
-        regionId: orderData.regionId,
+        regionId: parseInt(orderData.regionId), // تأكد من تحويله إلى عدد صحيح
         deliveryDate: orderData.deliveryDay,
-        addressId: orderData.addressId, // تأكد من أنك تتعامل مع معرف العنوان هنا إذا لزم الأمر
+        addressId: parseInt(orderData.addressId), // تأكد من تحويله إلى عدد صحيح
+        recipientInfo: orderData.recipientInfo, // تخزين معلومات المستلم
       },
     });
 

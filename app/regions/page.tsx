@@ -1,38 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Checkbox } from "@/app/components/ui/checkbox";
+import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/app/components/ui/alert-dialog";
 import { toast } from "react-toastify";
+import { FaEdit, FaTrash } from "react-icons/fa"; // مكتبة الأيقونات
 
-// تعريف النوع الخاص بالمناطق
-type RegionType = {
-  id?: number; // `id` سيكون غير موجود للمناطق الجديدة
+type EntryType = {
+  id: number; // إضافة حقل 'id' هنا
   name: string;
-  deliveryDays: string[]; // حفظ أيام التسليم كمصفوفة JSON
-  isNew?: boolean; // لتحديد ما إذا كانت المنطقة جديدة
+  neighborhoods: string | null;
+  deliveryDays: string[];
+  startTime: string;
+  endTime: string;
 };
 
-type SavedRegionType = {
-  id: number;
-  name: string;
-};
-
-// أيام الأسبوع
 const allDays = [
   "Monday",
   "Tuesday",
@@ -43,294 +26,289 @@ const allDays = [
   "Sunday",
 ];
 
-const ManageRegions = () => {
-  const [regions, setRegions] = useState<RegionType[]>([]); // تخزين المناطق والأيام
-  const [newRegionName, setNewRegionName] = useState(""); // تخزين اسم المنطقة الجديدة
-  const [error, setError] = useState(""); // تخزين أي أخطاء
-  const [selectedRegion, setSelectedRegion] = useState<RegionType | null>(null); // المنطقة المحددة للتحديث
-  const [selectedDay, setSelectedDay] = useState<string | null>(null); // اليوم المحدد للتحديث
+const ManageLocations = () => {
+  const [region, setRegion] = useState("");
+  const [neighborhoods, setNeighborhoods] = useState<string | null>(null);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [entries, setEntries] = useState<EntryType[]>([]);
+  const [editingRegionId, setEditingRegionId] = useState<number | null>(null);
 
-  // جلب المناطق من API عند تحميل الصفحة
-  // قم بإزالة useEffect وجلب البيانات باستخدام useQuery
-  const {
-    data: fetchedRegions,
-    error: fetchError,
-    isLoading,
-  } = useQuery({
-    queryKey: ["regions"],
-    queryFn: async () => {
-      const res = await fetch("http://localhost:3000/api/regions");
-      if (!res.ok) {
-        throw new Error("Failed to fetch regions");
-      }
-      return res.json();
-    },
-  });
-
-  // عند التحقق من جلب البيانات واستخدامها، استخدم fetchedRegions
-  useEffect(() => {
-    if (fetchedRegions) {
-      setRegions(fetchedRegions);
-    }
-  }, [fetchedRegions]);
-
-  // طلب تغيير الأيام
-  const handleDayChangeRequest = (region: RegionType, day: string) => {
-    if (region.isNew) {
-      toast.error(
-        "You can't modify delivery days for a new region until it's saved."
-      );
-      return;
-    }
-    setSelectedRegion(region);
-    setSelectedDay(day);
-  };
-
-  // تأكيد تغيير اليوم
-  const handleConfirmDayChange = async () => {
-    if (!selectedRegion || !selectedDay) return;
-
-    const updatedRegions = regions.map((region) =>
-      region.id === selectedRegion.id
-        ? {
-            ...region,
-            deliveryDays: region.deliveryDays.includes(selectedDay)
-              ? region.deliveryDays.filter((d) => d !== selectedDay)
-              : [...region.deliveryDays, selectedDay],
-          }
-        : region
+  // Handle day selection
+  const handleDayChange = (day: string, isChecked: boolean) => {
+    setSelectedDays((prevDays) =>
+      isChecked ? [...prevDays, day] : prevDays.filter((d) => d !== day)
     );
-
-    setRegions(updatedRegions);
-
-    try {
-      const res = await fetch(
-        `http://localhost:3000/api/regions/${selectedRegion.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            deliveryDays: updatedRegions.find(
-              (region) => region.id === selectedRegion.id
-            )?.deliveryDays,
-          }),
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`Failed to update region ${selectedRegion.name}`);
-      }
-
-      toast.success(`Delivery day updated for ${selectedRegion.name}!`);
-    } catch (error) {
-      console.error("Error updating region:", error);
-      toast.error(`An error occurred while updating ${selectedRegion.name}`);
-    }
-
-    setSelectedRegion(null);
-    setSelectedDay(null);
   };
 
-  // إضافة منطقة جديدة
-  const handleAddRegion = () => {
-    if (newRegionName.trim() === "") {
-      setError("Please enter a valid region name");
-      return;
-    }
-
-    if (
-      regions.some(
-        (region) => region.name.toLowerCase() === newRegionName.toLowerCase()
-      )
-    ) {
-      setError("Region already exists");
-      return;
-    }
-
-    // إضافة المنطقة الجديدة مع تعيين `isNew` على true
-    setRegions((prevRegions) => [
-      ...prevRegions,
-      { name: newRegionName, deliveryDays: [], isNew: true }, // لا يوجد id وتعتبر جديدة
-    ]);
-
-    setNewRegionName(""); // تفريغ الحقل بعد الإضافة
-    setError(""); // مسح الأخطاء
-  };
-
-  // حذف منطقة معينة
-  const handleDeleteRegion = async (id: number) => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/regions/${id}`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        setRegions((prevRegions) =>
-          prevRegions.filter((region) => region.id !== id)
-        );
-        toast.success("Region deleted successfully");
-      } else {
-        toast.error("Failed to delete region");
-      }
-    } catch (error) {
-      console.error("Error deleting region:", error);
-      toast.error("An error occurred while deleting the region");
-    }
-  };
-
-  // حفظ المنطقة الجديدة
-  const handleSave = async () => {
-    const newRegions = regions.filter((region) => region.isNew);
-
-    try {
-      // حفظ المناطق الجديدة
-      if (newRegions.length > 0) {
-        const res = await fetch("http://localhost:3000/api/regions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newRegions),
+  // Fetch existing entries from API on page load
+  useEffect(() => {
+    const fetchEntries = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/regions", {
+          method: "GET",
         });
 
-        if (!res.ok) {
-          throw new Error("Failed to save new regions");
+        if (!response.ok) {
+          throw new Error("Failed to fetch entries");
         }
 
-        const savedRegions = await res.json();
-
-        setRegions((prevRegions) =>
-          prevRegions.map((region) =>
-            region.isNew
-              ? {
-                  ...region,
-                  id: savedRegions.find(
-                    (r: SavedRegionType) => r.name === region.name
-                  ).id,
-                  isNew: false,
-                }
-              : region
-          )
-        );
-
-        toast.success("New regions saved successfully!");
+        const data = await response.json();
+        setEntries(data);
+      } catch (error) {
+        toast.error("Failed to load entries");
+        console.error("Error fetching entries:", error);
       }
-    } catch (error) {
-      console.error("Error saving regions:", error);
-      toast.error("An error occurred while saving the regions");
+    };
+
+    fetchEntries();
+  }, []);
+
+  // Handle adding new entry and saving it to API
+  const handleAddEntry = async () => {
+    if (
+      region &&
+      neighborhoods &&
+      selectedDays.length > 0 &&
+      startTime &&
+      endTime
+    ) {
+      const newEntry = {
+        name: region,
+        deliveryDays: selectedDays, // لا تحتاج لتحويل JSON هنا
+        neighborhoods: neighborhoods,
+        startTime: startTime,
+        endTime: endTime,
+      };
+
+      // إرسال البيانات إلى الخادم
+      const response = await fetch("http://localhost:3000/api/regions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newEntry),
+      });
+
+      if (response.status === 409) {
+        toast.error(
+          "Region with the same name and neighborhood already exists."
+        );
+        return;
+      }
+
+      if (!response.ok) {
+        toast.error("Failed to save entry.");
+        return;
+      }
+
+      // جلب البيانات المحدثة
+      const savedEntry = await response.json();
+      setEntries([...entries, savedEntry]);
+      // إعادة تعيين المدخلات
+      setRegion("");
+      setNeighborhoods(null);
+      setSelectedDays([]);
+      setStartTime("");
+      setEndTime("");
+    } else {
+      toast.error("Please fill all fields and select delivery days.");
     }
   };
 
-  // الآن يمكنك استخدام حالة التحميل والخطأ في الواجهة
-  if (isLoading) return <p>Loading...</p>;
-  if (fetchError) return <p>Error loading regions: {fetchError.message}</p>;
+  const handleEdit = (entry: EntryType & { id: number }) => {
+    setEditingRegionId(entry.id); // Store the ID of the region being edited
+    setRegion(entry.name);
+    setNeighborhoods(entry.neighborhoods);
+    setSelectedDays(entry.deliveryDays);
+    setStartTime(entry.startTime);
+    setEndTime(entry.endTime);
+  };
+
+  // إرسال طلب التعديل
+  const handleUpdateEntry = async (regionId: number) => {
+    // Construct updated entry data
+    const updatedEntry = {
+      name: region,
+      deliveryDays: selectedDays,
+      neighborhoods: neighborhoods,
+      startTime: startTime,
+      endTime: endTime,
+    };
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/regions/${regionId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedEntry),
+        }
+      );
+
+      if (!response.ok) {
+        toast.error("Failed to update region.");
+        return;
+      }
+
+      // Refresh entries with updated data
+      const updatedData = await response.json();
+      setEntries((prevEntries) =>
+        prevEntries.map((entry) =>
+          entry.id === regionId ? { ...entry, ...updatedData } : entry
+        )
+      );
+
+      // Reset editing mode and clear the input fields
+      setEditingRegionId(null);
+      setRegion("");
+      setNeighborhoods(null);
+      setSelectedDays([]);
+      setStartTime("");
+      setEndTime("");
+      toast.success("Region updated successfully.");
+    } catch (error) {
+      console.error("Error updating region:", error);
+      toast.error("Error updating region.");
+    }
+  };
+
+  const handleDelete = async (regionId: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/regions/${regionId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        toast.error("Failed to delete region.");
+        return;
+      }
+
+      // تحديث الإدخالات بعد الحذف
+      setEntries(entries.filter((entry) => entry.id !== regionId));
+      toast.success("Region deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting region:", error);
+      toast.error("Error deleting region.");
+    }
+  };
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold">Manage Regions</h1>
+      <h1 className="text-2xl font-bold">Manage Locations</h1>
       <Separator className="my-4" />
 
-      {/* إضافة منطقة جديدة */}
-      <div className="mb-4 flex items-center gap-4">
+      {/* Region Input */}
+      <div className="flex flex-col gap-4 mb-4">
         <Input
-          value={newRegionName}
-          onChange={(e) => setNewRegionName(e.target.value)}
-          placeholder="Enter new region name"
+          placeholder="Enter Region"
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
         />
-        <Button onClick={handleAddRegion}>Add Region</Button>
       </div>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {/* Neighborhood Input */}
+      <div className="flex flex-col gap-4 mb-4">
+        <Input
+          placeholder="Enter Neighborhood "
+          value={neighborhoods || ""}
+          onChange={(e) => setNeighborhoods(e.target.value || null)}
+        />
+      </div>
 
-      {/* عرض المناطق */}
-      {regions.length === 0 ? (
-        <p>No regions found</p>
-      ) : (
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr>
-              <th className="border p-2">Region</th>
-              {allDays.map((day) => (
-                <th key={day} className="border p-2">
-                  {day}
-                </th>
-              ))}
-              <th className="border p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {regions.map((region) => (
-              <tr key={region.name} className="border">
-                <td className="border p-2">{region.name}</td>
-                {allDays.map((day) => (
-                  <td key={day} className="border p-2 text-center">
-                    <Checkbox
-                      checked={region.deliveryDays.includes(day)}
-                      onCheckedChange={() =>
-                        handleDayChangeRequest(region, day)
-                      }
-                    />
-                  </td>
-                ))}
-                <td className="border p-2 text-center">
-                  {!region.isNew && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete the region.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
+      {/* Days of the Week Selection */}
+      <div className="flex items-center gap-4 mb-4">
+        {allDays.map((day) => (
+          <div key={day} className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={selectedDays.includes(day)}
+              onChange={(e) => handleDayChange(day, e.target.checked)}
+            />
+            <label>{day}</label>
+          </div>
+        ))}
+      </div>
 
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDeleteRegion(region.id!)}
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <Button className="mt-4" onClick={handleSave}>
-        Save Changes
-      </Button>
-      {/* Confirmation Dialog for Day Change */}
-      <AlertDialog
-        open={!!selectedRegion}
-        onOpenChange={() => setSelectedRegion(null)}
+      {/* Delivery Time Selection */}
+      <div className="flex flex-col gap-4 mb-4">
+        <label className="text-lg font-semibold">Delivery Time:</label>
+        <div className="flex gap-4">
+          <Input
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="text-lg p-2 border border-gray-300 rounded-md"
+          />
+          <span className="text-lg font-semibold">to</span>
+          <Input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className="text-lg p-2 border border-gray-300 rounded-md"
+          />
+        </div>
+      </div>
+      <Button
+        onClick={() => {
+          if (editingRegionId) {
+            handleUpdateEntry(editingRegionId);
+          } else {
+            handleAddEntry();
+          }
+        }}
       >
-        <AlertDialogTrigger />
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Day Change</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to update the delivery days for this region?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDayChange}>
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {editingRegionId ? "Update Entry" : "Add Entry"}
+      </Button>
+
+      {/* عرض الإدخالات في جدول */}
+      <table className="min-w-full border-collapse mt-4">
+        <thead>
+          <tr>
+            <th className="border p-2">Region</th>
+            <th className="border p-2">Neighborhood</th>
+            <th className="border p-2">Delivery Days</th>
+            <th className="border p-2">Start Time</th>
+            <th className="border p-2">End Time</th>
+            <th className="border p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((entry, index) => (
+            <tr key={index} className="border">
+              <td className="border p-2">{entry.name}</td>
+              <td className="border p-2">
+                {entry.neighborhoods ? entry.neighborhoods : "جميع الأحياء"}
+              </td>
+              <td className="border p-2">
+                {Array.isArray(entry.deliveryDays)
+                  ? entry.deliveryDays.join(", ")
+                  : entry.deliveryDays}
+              </td>
+              <td className="border p-2">{entry.startTime}</td>
+              <td className="border p-2">{entry.endTime}</td>
+              <td className="border p-2 flex gap-2">
+                {/* أيقونة التعديل */}
+                <button onClick={() => handleEdit(entry)}>
+                  <FaEdit className="text-blue-600" />
+                </button>
+                {/* أيقونة الحذف */}
+                <button onClick={() => handleDelete(entry.id)}>
+                  <FaTrash className="text-red-600" />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default ManageRegions;
+export default ManageLocations;

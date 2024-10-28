@@ -36,6 +36,7 @@ export type OrderType = {
   status: string;
   regionId?: number; // معرف المنطقة المرتبطة بالتوصيل
   deliveryDate?: string;
+  recipientInfo?: string; // حقل واحد يجمع اسم ورقم المستلم تحت بعض كما طلبت
   region: RegionType;
   user: UserType; // تضمين معلومات المستخدم هنا
   address: AddressType; // تضمين معلومات العنوان هنا

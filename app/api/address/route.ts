@@ -4,12 +4,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import prisma from "@/utils/connect";
 
-// API لإنشاء عنوان جديد
+// API for creating a new address
 export async function POST(req: NextRequest) {
   try {
-    const { il, ilce, mahalle, adres, regionId } = await req.json(); // إضافة regionId
+    // Extract the necessary fields
+    const { il, neighborhoods, adres, regionId } = await req.json();
 
-    const { userId } = auth(); // جلب معرف المستخدم من Clerk
+    // Authenticate the user
+    const { userId } = auth();
 
     if (!userId) {
       return NextResponse.json(
@@ -18,30 +20,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // تحقق مما إذا كان المستخدم موجودًا بالفعل في قاعدة البيانات
+    // Check if the user exists in the database
     let user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
 
-    // إذا لم يكن المستخدم موجودًا، قم بإنشائه
+    // Create the user if they don't exist
     if (!user) {
-      const clerkUser = await clerkClient.users.getUser(userId); // جلب بيانات المستخدم من Clerk
+      const clerkUser = await clerkClient.users.getUser(userId);
       user = await prisma.user.create({
         data: {
           id: userId,
           name: clerkUser.fullName || "Unknown Name",
           email: clerkUser.emailAddresses[0]?.emailAddress || "Unknown Email",
           phoneNumber:
-            clerkUser.phoneNumbers[0]?.phoneNumber || "Unknown Phone", // جلب أول رقم هاتف إذا كان موجودًا
+            clerkUser.phoneNumbers[0]?.phoneNumber || "Unknown Phone",
         },
       });
     }
 
-    // تحقق من صحة regionId
+    // Validate the region ID
     const region = await prisma.region.findUnique({
-      where: { id: regionId }, // تأكد من أن المعرف موجود
+      where: { id: regionId },
     });
 
     if (!region) {
@@ -51,21 +53,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // إنشاء عنوان جديد في قاعدة البيانات
+    // Create the new address
     const newAddress = await prisma.address.create({
       data: {
         il,
-        ilce,
-        mahalle,
+        neighborhoods,
         adres,
-        regionId, // إضافة معرف المنطقة
-        userId, // ربط العنوان بمعرف المستخدم
+        regionId,
+        userId, // Link the address to the user
       },
     });
 
     return NextResponse.json(newAddress, { status: 201 });
   } catch (error) {
-    console.error("Error details:", error);
+    console.error("Error creating address:", error);
     return NextResponse.json(
       { message: "Error creating address", error },
       { status: 500 }
@@ -105,7 +106,7 @@ export async function GET() {
 // API لتعديل العنوان
 export async function PUT(req: NextRequest) {
   try {
-    const { il, ilce, mahalle, adres, regionId } = await req.json(); // جلب بيانات العنوان المعدل
+    const { il, neighborhoods, adres, regionId } = await req.json(); // جلب بيانات العنوان المعدل
     const { userId } = auth(); // جلب معرف المستخدم من Clerk
 
     if (!userId) {
@@ -122,8 +123,7 @@ export async function PUT(req: NextRequest) {
       },
       data: {
         il,
-        ilce,
-        mahalle,
+        neighborhoods,
         adres,
         regionId,
       },

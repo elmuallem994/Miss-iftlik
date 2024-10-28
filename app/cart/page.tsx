@@ -75,7 +75,14 @@ const CartPage = () => {
 
         setLoading(true); // تفعيل حالة التحميل
 
-        const regionId = await fetchRegionId(); // جلب معرف المنطقة
+        const regionData = await fetchRegionId(); // جلب كائن العنوان ومعرف المنطقة
+
+        if (!regionData || !regionData.regionId) {
+          throw new Error("Region ID is missing.");
+        }
+
+        const regionId = regionData.regionId;
+
         const addressResponse = await fetch(
           `http://localhost:3000/api/address/${user?.id}`
         );
@@ -85,6 +92,8 @@ const CartPage = () => {
         if (!addressId) {
           throw new Error("Address ID is missing.");
         }
+
+        const recipientInfo = `${recipientName}\n${recipientPhone}`;
 
         const res = await fetch("http://localhost:3000/api/orders", {
           method: "POST",
@@ -106,8 +115,9 @@ const CartPage = () => {
                 selectedDay,
                 "yyyy-MM-dd"
               )}`,
-              regionId: regionId,
+              regionId: regionId, // التأكد من أن `regionId` يتم إرساله هنا كعدد وليس كائن
               addressId: addressId,
+              recipientInfo: recipientInfo, // تخزين المعلومات المدمجة هنا
             },
           }),
         });
@@ -133,17 +143,22 @@ const CartPage = () => {
         `http://localhost:3000/api/address/${user?.id}`
       );
       if (!addressResponse.ok) {
-        throw new Error("Failed to fetch user address");
+        throw new Error("فشل في جلب عنوان المستخدم");
       }
 
       const addressData = await addressResponse.json();
+      console.log("Address Data:", addressData); // طباعة البيانات هنا للتحقق
 
       if (!addressData.regionId) {
         throw new Error("لم يتم العثور على معرف المنطقة لعنوان المستخدم");
       }
 
-      // إرجاع الكائن الكامل للعنوان
-      return addressData;
+      // إرجاع العنوان الكامل ومعرف المنطقة ككائن منفصل
+      return {
+        fullAddress: `${addressData.il}, ${addressData.neighborhoods}, ${addressData.adres}`, // صيغة العنوان الكامل
+        regionId: addressData.regionId,
+        neighborhoods: addressData.neighborhoods,
+      };
     } catch (err) {
       setError(err.message);
       return null;
@@ -151,38 +166,39 @@ const CartPage = () => {
   };
 
   const fetchDeliveryDays = async () => {
-    // التحقق من تسجيل الدخول
+    // Check if user is signed in
     if (!isSignedIn) {
       setMessage("يرجى تسجيل الدخول للمتابعة.");
       setTimeout(() => {
         router.push("/sign-in");
-      }, 2000); // انتظار ثانيتين قبل التوجيه
+      }, 2000);
       return;
     }
+
     try {
-      setLoading(true); // تفعيل حالة التحميل
+      setLoading(true);
       setError(null);
 
-      // جلب جميع بيانات العنوان
+      // Fetch address data, including neighborhood
       const addressData = await fetchRegionId();
       if (!addressData) {
         setMessage("يرجى إضافة عنوان للمتابعة.");
         setTimeout(() => {
           router.push("/address");
-        }, 2000); // انتظار ثانيتين قبل التوجيه
+        }, 2000);
         return;
       }
 
-      // استخراج معرف المنطقة والعنوان الكامل من الكائن المستلم
-      const regionId = addressData.regionId;
-      const fullAddress = `${addressData.il}, ${addressData.ilce}, ${addressData.mahalle}, ${addressData.adres}`;
+      const { fullAddress, neighborhoods } = addressData;
 
-      // تعيين العنوان الكامل في الحالة
+      // Set the full address state
       setFullAddress(fullAddress);
 
+      // Fetch delivery days based on neighborhood
       const response = await fetch(
-        `http://localhost:3000/api/regions/${regionId}`
+        `http://localhost:3000/api/neighborhoods/${neighborhoods}`
       );
+
       if (!response.ok) {
         throw new Error("Failed to fetch delivery days");
       }
@@ -190,16 +206,17 @@ const CartPage = () => {
       const data = await response.json();
       setDeliveryDays(data.deliveryDays);
 
-      // Set region name in a state
-      setRegionName(data.regionName); // Assuming the API returns 'regionName'
+      // Set the region name in state
+      setRegionName(data.regionName);
 
+      // Calculate delivery dates and sort them
       const calculatedDates = calculateDeliveryDates(data.deliveryDays);
       const sortedDates = calculatedDates.sort(compareAsc);
       setDeliveryDates(sortedDates);
     } catch (error) {
       setError(error.message || "حدث خطأ أثناء جلب أيام التوصيل");
     } finally {
-      setLoading(false); // إيقاف حالة التحميل
+      setLoading(false);
     }
   };
 
