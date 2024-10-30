@@ -1,59 +1,78 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, EffectFade } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/effect-fade";
 import Image from "next/image";
 
-const data = [
-  {
-    id: 1,
-    title: "En iyi taze süt",
-    image: "/slide1.png",
-  },
-  {
-    id: 2,
-    title: "Her gün kapınıza kadar geliyor",
-    image: "/slide2.png",
-  },
-  {
-    id: 3,
-    title: "En yüksek standartlara uygun tam yağlı ürünler",
-    image: "/slide3.png",
-  },
-];
-
 const Slider = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(
-      () =>
-        setCurrentSlide((prev) => (prev === data.length - 1 ? 0 : prev + 1)),
-      2000
-    );
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] lg:flex-row bg-yellow-50">
-      {/** TEXT CONTAINER */}
-      <div className=" flex-1 flex items-center justify-center flex-col gap-8 text-orange-500 font-bold ">
-        <h1 className="text-5xl text-center uppercase p-4 md:p-10 md:text-6xl xl:text-7xl">
-          {data[currentSlide].title}
-        </h1>
-        <button className="bg-orange-500 text-white py-4 px-8 rounded-md">
-          Şimdi Sipariş Ver
-        </button>
-      </div>
-      {/** IMAGE CONTAINER */}
-      <div className="w-full flex-1 relative ">
+    <div className="h-screen w-full relative my-swiper-container z-0">
+      <Swiper
+        modules={[Autoplay, Pagination, EffectFade]}
+        loop={true}
+        autoplay={{ delay: 3000 }}
+        pagination={{ clickable: true }}
+        effect="fade"
+        speed={800}
+        className="w-full h-full"
+      >
+        <SwiperSlide>
+          <div className="relative w-full h-full overflow-hidden">
+            <Image
+              src="/slide1.JPG"
+              alt="Slide 1"
+              fill
+              className="object-cover zoom-in-effect"
+            />
+          </div>
+        </SwiperSlide>
+        <SwiperSlide>
+          <div className="relative w-full h-full overflow-hidden">
+            <Image
+              src="/slide2.JPG"
+              alt="Slide 2"
+              fill
+              className="object-cover zoom-in-effect"
+            />
+          </div>
+        </SwiperSlide>
+        <SwiperSlide>
+          <div className="relative w-full h-full overflow-hidden">
+            <Image
+              src="/slide3.JPG"
+              alt="Slide 3"
+              fill
+              className="object-cover zoom-in-effect"
+            />
+          </div>
+        </SwiperSlide>
+        <SwiperSlide>
+          <div className="relative w-full h-full overflow-hidden">
+            <Image
+              src="/slide4.JPG"
+              alt="Slide 4"
+              fill
+              className="object-cover zoom-in-effect"
+            />
+          </div>
+        </SwiperSlide>
+      </Swiper>
+
+      {/* صورة أمواج الحليب */}
+      <div className="absolute bottom-[-2px] md:bottom-[-10px] left-0 w-full  z-10">
         <Image
-          src={data[currentSlide].image}
-          alt=""
-          fill
-          className="object-cover aspect-square"
+          src="/mog.png" // ضع رابط صورة الأمواج هنا
+          alt="Milk Waves"
+          width={1920}
+          height={200}
+          className="w-full h-auto"
         />
       </div>
     </div>
   );
 };
+
 export default Slider;

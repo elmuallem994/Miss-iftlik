@@ -67,23 +67,39 @@ const Price = ({ product }: { product: ProductType }) => {
     <div className="flex flex-col gap-4 items-center">
       {/* حاوية العدد */}
       {isEditing ? (
-        <div className="flex items-center gap-2">
-          <Button variant="destructive" size="sm" onClick={handleDecrease}>
-            {quantity === 1 ? <Trash2 size={16} /> : "-"}
+        <div className="flex items-center gap-1 ">
+          <Button
+            variant="destructive"
+            className="bg-orange-400 hover:bg-orange-500"
+            size="sm"
+            onClick={handleDecrease}
+          >
+            <span className="text-2xl items-center  ">
+              {quantity === 1 ? <Trash2 size={16} className="text-lg" /> : "-"}
+            </span>
           </Button>
           <Input
             value={quantity}
             readOnly
-            className="w-12 text-center"
+            className="w-10 text-center text-white text-lg bg-orange-400"
             aria-label="Current quantity"
           />
-          <Button variant="destructive" size="sm" onClick={handleIncrease}>
-            +
+          <Button
+            variant="destructive"
+            className="bg-orange-400 hover:bg-orange-500"
+            size="sm"
+            onClick={handleIncrease}
+          >
+            <span className="text-2xl items-center pb-1 ">+</span>
           </Button>
         </div>
       ) : (
-        <Button variant="default" onClick={handleAddToCart}>
-          أضف للسلة
+        <Button
+          variant="secondary"
+          className="bg-orange-50 text-black hover:bg-orange-200"
+          onClick={handleAddToCart}
+        >
+          Sepete Ekle
         </Button>
       )}
     </div>

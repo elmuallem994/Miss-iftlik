@@ -1,7 +1,7 @@
 "use client";
 import { useCartStore } from "@/utils/store";
 import { useUser } from "@clerk/nextjs";
-import Image from "next/image";
+
 import Link from "next/link";
 import { useEffect } from "react";
 import {
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
 } from "@/app/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
+import { ShoppingCart } from "lucide-react";
 
 const CartIcon = () => {
   const { user } = useUser(); // استخدم هوك Clerk لجلب المستخدم والتحقق من حالة المصادقة
@@ -41,20 +42,13 @@ const CartIcon = () => {
         </DropdownMenu>
       ) : (
         <Link href="/cart">
-          <div className="flex items-center gap-4">
-            <div className="relative w-8 h-8 md:w-5 md:h-5">
-              <Image
-                src="/cart.png"
-                alt="Cart Icon"
-                fill
-                sizes="100%"
-                className="object-contain"
-              />
-            </div>
-            <div className="cart-icon">
-              <span className="icon">🛒</span>
-              <span className="cart-count">({totalItems})</span>
-            </div>
+          <div className="relative flex items-center bg-orange-400 p-2 rounded-full">
+            <ShoppingCart className="text-white w-5 h-5" />
+            {totalItems > 0 && (
+              <div className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {totalItems}
+              </div>
+            )}
           </div>
         </Link>
       )}

@@ -1,10 +1,18 @@
 "use client";
 
-import Image from "next/image";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { MenuIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import CartIcon from "./CartIcon";
 import UserLinks from "./UserLinks";
+import { Button } from "@/components/ui/button";
+import { Separator } from "./ui/separator";
 
 const links = [
   { id: 1, title: "Ana sayfa", url: "/" },
@@ -14,41 +22,48 @@ const links = [
 ];
 
 const Menu = () => {
-  const [open, setOpen] = useState(false);
-
   return (
-    <div>
-      {!open ? (
-        <Image
-          src="/open.png"
-          alt=""
-          width={20}
-          height={20}
-          onClick={() => setOpen(true)}
-        />
-      ) : (
-        <Image
-          src="/close.png"
-          alt=""
-          width={20}
-          height={20}
-          onClick={() => setOpen(false)}
-        />
-      )}
-      {open && (
-        <div className="bg-orange-500 text-white absolute left-0 top-24 w-full h-[calc(100vh-6rem)] flex flex-col gap-8 items-center justify-center text-3xl z-10">
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          className="ml-auto mr-4 bg-orange-400 text-white"
+        >
+          <MenuIcon className="text-white" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent
+        side="left"
+        className="bg-orange-50 flex flex-col justify-between  w-80 p-6"
+      >
+        <div className="flex flex-col items-center gap-4">
+          <SheetHeader>
+            <SheetTitle className="text-center text-2xl">القائمة</SheetTitle>
+          </SheetHeader>
+          <Separator />
+        </div>
+
+        <div className="flex flex-col gap-4 items-center text-lg w-full max-w-xs mx-auto">
           {links.map((item) => (
-            <Link href={item.url} key={item.id} onClick={() => setOpen(false)}>
+            <Link
+              href={item.url}
+              key={item.id}
+              className="hover:underline text-white bg-orange-400 text-center rounded-2xl py-1 w-full"
+            >
               {item.title}
             </Link>
           ))}
-          <UserLinks onClick={() => setOpen(false)} />
-          <Link href="/cart" onClick={() => setOpen(false)}>
+        </div>
+
+        <div className="flex flex-row items-center justify-between gap-4">
+          <UserLinks />
+          <Link href="/cart">
             <CartIcon />
           </Link>
         </div>
-      )}
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 };
+
 export default Menu;

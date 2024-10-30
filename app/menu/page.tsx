@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useLoadingStore } from "@/utils/store";
+import Image from "next/image";
 
 const getData = async () => {
   const res = await fetch("http://localhost:3000/api/categories", {
@@ -62,44 +63,56 @@ const MenuPage = () => {
   const isAdmin = user?.publicMetadata.role === "admin";
 
   return (
-    <div className="p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex flex-col md:flex-row items-center ">
-      {menu.map((category) => (
-        <div
-          key={category.id}
-          className="relative w-full h-1/3 bg-cover p-8 md:h-1/2"
-          style={{ backgroundImage: `url(${category.img})` }}
-        >
-          <Link
-            href={`/menu/${category.slug}`}
-            className="absolute inset-0 z-10"
-          />
-          <div className="relative flex flex-col justify-between text-orange-50 w-[75%] md:w-[80%] xl:w-[60%] 2xl:w-[55%] p-3 md:p-6 bg-orange-600 bg-opacity-40 rounded-md h-full">
-            <h1 className="uppercase font-bold text-lg lg:text-3xl">
-              {category.title}
-            </h1>
-            <p className="text-sm my-4 flex-grow">{category.desc}</p>
-            <button className="self-start bg-orange-600 text-white py-1 px-2 md:py-2 md:px-4 rounded-md">
-              Keşfet
-            </button>
-          </div>
-          {isAdmin && (
-            <div className="absolute top-4 right-4 z-20 flex gap-2">
-              <button
-                onClick={() => handleDelete(category.id)}
-                className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
-              >
-                <FaTrash className="w-4 h-4" />
-              </button>
+    <div className="min-h-screen w-full text-orange-500 pt-40">
+      <h1 className="glowing-text text-center text-6xl text-white font-extralight mb-12">
+        Çeşitler
+      </h1>
+      <div className="w-full flex justify-center items-center py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 w-[60%] lg:w-[55%]">
+          {menu.map((category) => (
+            <div
+              key={category.id}
+              className="w-full h-full flex flex-col items-center justify-between p-4 border-2 border-orange-500 rounded-lg shadow-lg relative"
+            >
               <Link
-                href={`/addCategoryForm/${category.id}`}
-                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700"
-              >
-                <FaEdit className="w-4 h-4" />
-              </Link>
+                href={`/menu/${category.slug}`}
+                className="absolute inset-0 z-10"
+              />
+              <div className="relative w-full h-64">
+                <Image
+                  src={category.img}
+                  alt={category.title}
+                  fill
+                  className="object-cover rounded-md"
+                />
+              </div>
+              <div className="flex flex-col items-center justify-center text-center mt-4">
+                <h2 className="text-4xl font-bold">{category.title}</h2>
+                <p className="my-4 text-lg text-white">{category.desc}</p>
+                <button className="bg-orange-500 text-white py-2 px-4 rounded-md">
+                  Keşfet
+                </button>
+              </div>
+              {isAdmin && (
+                <div className="absolute top-4 right-4 z-20 flex gap-2">
+                  <button
+                    onClick={() => handleDelete(category.id)}
+                    className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
+                  >
+                    <FaTrash className="w-4 h-4" />
+                  </button>
+                  <Link
+                    href={`/addCategoryForm/${category.id}`}
+                    className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700"
+                  >
+                    <FaEdit className="w-4 h-4" />
+                  </Link>
+                </div>
+              )}
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 };

@@ -2,88 +2,61 @@
 "use client";
 
 import Link from "next/link";
-import Menu from "./Menu";
+
 import CartIcon from "./CartIcon";
 import Image from "next/image";
 import UserLinks from "./UserLinks";
-import { useRouter } from "next/navigation";
-import { useLoadingStore } from "@/utils/store";
+import { Search } from "lucide-react";
+import Menu from "./Menu";
 
 const Navbar = () => {
-  const router = useRouter();
-  const setLoading = useLoadingStore((state) => state.setLoading);
-
-  const handleNavigation = async (url: string) => {
-    try {
-      setLoading(true); // Activate loading state
-      await router.push(url); // Wait for navigation to complete
-    } catch (error) {
-      console.error("Navigation error:", error);
-    } finally {
-      setLoading(false); // Deactivate loading state
-    }
-  };
-
   return (
-    <div className="h-12 text-orange-500 p-4 flex items-center justify-between border-b-2 border-b-orange-500 uppercase md:h-24 lg:px-20 xl:px-40">
-      {/* Left Links */}
-      <div className="hidden md:flex gap-4 flex-1">
-        {/* Include href and prevent default action in onClick */}
-        <Link
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            handleNavigation("/");
-          }}
-        >
-          Ana sayfa
+    <div className="absolute top-20 md:top-16 left-0 w-full z-10 bg-transparent h-16 md:h-20 md:px-4  flex items-center justify-between md:justify-center md:gap-14">
+      {/* Logo */}
+      <div className="flex items-center ">
+        <Image src="/logo.png" alt="Logo" width={120} height={60} />
+      </div>
+
+      {/* Center Links */}
+      <div className="hidden md:flex justify-center items-center gap-4  text-white ">
+        <Link href="/" className="bg-orange-400 rounded-2xl py-1 px-3">
+          Anasayfa
         </Link>
-        <Link
-          href="/menu"
-          onClick={(e) => {
-            e.preventDefault();
-            handleNavigation("/menu");
-          }}
-        >
-          Menü
+        <Link href="/menu" className="bg-orange-400 rounded-2xl py-1 px-3">
+          Hakkımızda
         </Link>
-        <Link
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            handleNavigation("/");
-          }}
-        >
-          İletişim
+        <Link href="/menu" className="bg-orange-400 rounded-2xl py-1 px-3">
+          Ürünler
+        </Link>
+        <Link href="/" className="bg-orange-400 rounded-2xl py-1 px-3">
+          Çiftliğimiz
         </Link>
       </div>
 
-      {/* Logo */}
-      <div className="text-xl md:font-bold flex-1 md:text-center">
-        <Link
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            handleNavigation("/");
-          }}
-        >
-          Miss çiftlik
-        </Link>
+      {/* Right Links */}
+      <div className="hidden md:flex items-center gap-4">
+        <div className="flex items-center bg-white rounded-full overflow-hidden shadow-md">
+          <input
+            type="text"
+            placeholder="Ürün arayın..."
+            className="outline-none text-black px-4 py-2 w-full"
+          />
+          <div className="  bg-orange-400 px-4 py-2 cursor-pointer">
+            <button>
+              <Search className="text-white" size={16} />
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Include the icons such as User, Favorite, and Cart */}
+          <UserLinks />
+          <CartIcon />
+        </div>
       </div>
 
       {/* Mobile Menu */}
       <div className="md:hidden">
         <Menu />
-      </div>
-
-      {/* Right Links */}
-      <div className="hidden md:flex gap-4 items-center justify-end flex-1">
-        <div className="md:absolute top-3 right-2 lg:static flex items-center gap-2 cursor-pointer bg-orange-300 px-1 rounded-md">
-          <Image src="/phone.png" alt="" width={20} height={20} />
-          <span>123 456 78</span>
-        </div>
-        <UserLinks />
-        <CartIcon />
       </div>
     </div>
   );

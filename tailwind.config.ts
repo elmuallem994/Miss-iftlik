@@ -12,7 +12,7 @@ const config: Config = {
     extend: {
       colors: {
         // Adding custom primary and secondary colors
-        "primary-black": "#22521",
+        "primary-black": "#212529",
         "secondary-white": "#c7c7c7",
         // Adding the existing colors from your configuration
         background: "hsl(var(--background))",

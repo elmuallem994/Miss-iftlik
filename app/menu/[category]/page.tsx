@@ -27,7 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/app/components/ui/separator";
 
 type Props = {
   params: { category: string };
@@ -87,40 +86,41 @@ const CategoryPage = ({ params }: Props) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12">
+    <div className="min-h-screen flex items-center justify-center py-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 w-[70%] lg:w-[60%]">
         {products.map((item) => (
-          <Card key={item.id} className="pb-3 ">
-            <CardHeader className="relative w-80 h-48 ">
+          <Card
+            key={item.id}
+            className="flex flex-col items-center justify-between p-2 border-2 border-orange-500 rounded-lg shadow-lg bg-transparent"
+          >
+            <CardHeader className="relative w-full h-48">
               {item.img && (
                 <Image
                   src={item.img}
                   alt={item.title}
                   fill
-                  className="object-fill "
+                  className="object-cover rounded-md"
                 />
               )}
             </CardHeader>
 
-            <CardContent className="flex justify-between items-center pt-3">
-              <CardTitle className="text-lg lg:text-2xl uppercase">
+            <CardContent className="flex flex-col items-center justify-between pt-5 w-full">
+              <CardTitle className="text-xl lg:text-3xl uppercase text-orange-500">
                 {item.title}
               </CardTitle>
-              <h2 className="text-lg lg:text-xl">{item.price} TL</h2>
             </CardContent>
-            <Separator />
 
             {user?.publicMetadata?.role === "admin" ? (
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-between w-full mt-4">
                 <Link href={`/add/${item.id}`}>
-                  <button className="p-2 bg-blue-500 text-white rounded-md">
+                  <button className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                     ✏️ تعديل
                   </button>
                 </Link>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button
-                      className="p-2 bg-red-500 text-white rounded-md"
+                      className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                       onClick={() => setProductIdToDelete(item.id)}
                     >
                       🗑️ حذف
@@ -145,8 +145,16 @@ const CategoryPage = ({ params }: Props) => {
                 </AlertDialog>
               </CardFooter>
             ) : (
-              <CardFooter className="flex justify-center items-center py-4">
-                <Price product={item} />
+              <CardFooter className="w-full">
+                <div className="flex justify-between items-center py-4 px-3 w-full">
+                  <h2
+                    className="text-lg lg:text-3xl text-white"
+                    style={{ width: "100px" }}
+                  >
+                    {item.price} TL
+                  </h2>
+                  <Price product={item} />
+                </div>
               </CardFooter>
             )}
           </Card>
