@@ -32,10 +32,10 @@ type AddPageProps = {
   productData?: {
     id: string;
     title: string;
-    desc: string;
+    desc?: string;
     price: number;
     catSlug: string;
-    img?: string; // Add the 'img' field here
+    img: string; // Add the 'img' field here
   };
 };
 

@@ -107,6 +107,8 @@ const CartPage = () => {
               products: products.map((product) => ({
                 id: product.id,
                 title: product.title, // إضافة اسم المنتج
+                desc: product.desc,
+                img: product.img,
                 quantity: product.quantity, // العدد المطلوب من المنتج
                 price: product.price,
               })),

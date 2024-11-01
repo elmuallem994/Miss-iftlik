@@ -30,8 +30,8 @@ model Category {
 model Product {
   id         String   @id @default(cuid())
   title      String
-  desc       String
-  img        String?
+  desc       String?
+  img        String
   price      Decimal
   isFeatured Boolean  @default(false)
   category   Category @relation(fields: [catSlug], references: [slug])
@@ -68,11 +68,14 @@ model OrderItem {
   id        String   @id @default(cuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  title     String
+  productId String?
+  product   Product?  @relation(fields: [productId], references: [id])
+  title     String   // حفظ عنوان المنتج
+  desc      String?  // حفظ وصف المنتج
+  img       String?  // حفظ صورة المنتج (اختياري)
+  price     Decimal  // حفظ سعر المنتج
   quantity  Int
-  price     Decimal
+ 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

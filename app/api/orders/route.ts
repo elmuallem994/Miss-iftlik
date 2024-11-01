@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 type OrderProduct = {
   id: string;
   title: string;
+  desc: string;
+  img: string;
   quantity: number;
   price: number;
 };
@@ -88,6 +90,8 @@ export const POST = async (req: NextRequest) => {
       orderId: order.id,
       productId: product.id,
       title: product.title,
+      desc: product.desc || null,
+      img: product.img || null,
       quantity: product.quantity,
       price: product.price,
     }));

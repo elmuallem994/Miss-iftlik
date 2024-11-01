@@ -108,6 +108,9 @@ const CategoryPage = ({ params }: Props) => {
               <CardTitle className="text-xl lg:text-3xl uppercase text-orange-500">
                 {item.title}
               </CardTitle>
+              <p className="text-sm lg:text-lg text-gray-700 text-center mt-2">
+                {item.desc}
+              </p>
             </CardContent>
 
             {user?.publicMetadata?.role === "admin" ? (
