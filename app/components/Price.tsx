@@ -55,6 +55,7 @@ const Price = ({ product }: { product: ProductType }) => {
     addToCart({
       id: product.id,
       title: product.title,
+      desc: product.desc, // تأكد من إضافة الوصف هنا
       img: product.img,
       price: product.price,
       quantity,

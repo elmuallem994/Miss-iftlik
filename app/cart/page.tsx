@@ -73,9 +73,9 @@ const CartPage = () => {
           throw new Error("Please select a delivery day.");
         }
 
-        setLoading(true); // تفعيل حالة التحميل
+        setLoading(true);
 
-        const regionData = await fetchRegionId(); // جلب كائن العنوان ومعرف المنطقة
+        const regionData = await fetchRegionId();
 
         if (!regionData || !regionData.regionId) {
           throw new Error("Region ID is missing.");
@@ -95,6 +95,18 @@ const CartPage = () => {
 
         const recipientInfo = `${recipientName}\n${recipientPhone}`;
 
+        console.log(
+          "Products data before sending:",
+          products.map((product) => ({
+            id: product.id,
+            title: product.title,
+            desc: product.desc, // التأكد من أن الوصف يظهر هنا
+            img: product.img,
+            quantity: product.quantity,
+            price: product.price,
+          }))
+        );
+
         const res = await fetch("http://localhost:3000/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -106,20 +118,20 @@ const CartPage = () => {
               price: totalPrice,
               products: products.map((product) => ({
                 id: product.id,
-                title: product.title, // إضافة اسم المنتج
-                desc: product.desc,
+                title: product.title,
+                desc: product.desc, // التأكد من إضافة الوصف هنا
                 img: product.img,
-                quantity: product.quantity, // العدد المطلوب من المنتج
+                quantity: product.quantity,
                 price: product.price,
               })),
-              status: "Sipariş Alındı",
+              status: "Alındı",
               deliveryDay: `${format(selectedDay, "EEEE")} - ${format(
                 selectedDay,
                 "yyyy-MM-dd"
               )}`,
-              regionId: regionId, // التأكد من أن `regionId` يتم إرساله هنا كعدد وليس كائن
+              regionId: regionId,
               addressId: addressId,
-              recipientInfo: recipientInfo, // تخزين المعلومات المدمجة هنا
+              recipientInfo: recipientInfo,
             },
           }),
         });
@@ -134,7 +146,7 @@ const CartPage = () => {
       } catch (err) {
         console.error("Something went wrong during the checkout process:", err);
       } finally {
-        setLoading(false); // إيقاف حالة التحميل
+        setLoading(false);
       }
     }
   };
@@ -161,8 +173,9 @@ const CartPage = () => {
         regionId: addressData.regionId,
         neighborhoods: addressData.neighborhoods,
       };
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.log(error);
+      setError(error.message);
       return null;
     }
   };
@@ -239,8 +252,10 @@ const CartPage = () => {
             )}
             <div className="">
               <h1 className="uppercase text-xl font-bold">
-                {item.title} x{item.quantity}
+                {item.title} {item.desc} x{item.quantity}
               </h1>
+
+              {/* إضافة الوصف هنا */}
               <span>{item.optionTitle}</span>
             </div>
             <h2 className="font-bold">{item.price} TL</h2>

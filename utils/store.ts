@@ -2,6 +2,16 @@ import { ActionTypes, CartType } from "@/app/types/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+type CartItemType = {
+  id: string;
+  title: string;
+  desc: string;
+  img: string;
+  price: number;
+  optionTitle?: string;
+  quantity: number;
+};
+
 const INITIAL_STATE = {
   products: [],
   totalItems: 0,
@@ -15,7 +25,8 @@ export const useCartStore = create(
       totalItems: INITIAL_STATE.totalItems,
       totalPrice: INITIAL_STATE.totalPrice,
 
-      addToCart(item) {
+      addToCart(item: CartItemType) {
+        console.log("Adding item to cart:", item); // التأكد من أن `desc` موجود
         const products = get().products;
         const productInState = products.find(
           (product) => product.id === item.id
@@ -27,19 +38,20 @@ export const useCartStore = create(
               ? {
                   ...product,
                   quantity: product.quantity + item.quantity,
+                  desc: item.desc, // التأكد من تضمين `desc`
                 }
               : product
           );
           set((state) => ({
             products: updatedProducts,
             totalItems: state.totalItems + item.quantity,
-            totalPrice: state.totalPrice + item.price * item.quantity, // إضافة إجمالي السعر بناءً على الكمية
+            totalPrice: state.totalPrice + item.price * item.quantity,
           }));
         } else {
           set((state) => ({
             products: [...state.products, item],
             totalItems: state.totalItems + item.quantity,
-            totalPrice: state.totalPrice + item.price * item.quantity, // إضافة إجمالي السعر بناءً على الكمية
+            totalPrice: state.totalPrice + item.price * item.quantity,
           }));
         }
       },

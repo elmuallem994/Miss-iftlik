@@ -21,10 +21,10 @@ export const GET = async () => {
 // ADD A NEW CATEGORY
 export const POST = async (req: NextRequest) => {
   try {
-    const { title, desc, color, img, slug } = await req.json();
+    const { title, desc, img, slug } = await req.json();
 
     // التحقق من وجود القيم المطلوبة
-    if (!title || !desc || !color || !img || !slug) {
+    if (!title || !desc || !img || !slug) {
       return new NextResponse(
         JSON.stringify({ message: "All fields are required!" }),
         { status: 400 }
@@ -36,7 +36,6 @@ export const POST = async (req: NextRequest) => {
       data: {
         title,
         desc,
-        color,
         img,
         slug,
       },

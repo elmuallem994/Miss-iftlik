@@ -13,16 +13,16 @@ const Navbar = () => {
   return (
     <div className="absolute top-20 md:top-16 left-0 w-full z-10 bg-transparent h-16 md:h-20 md:px-4  flex items-center justify-between md:justify-center md:gap-14">
       {/* Logo */}
-      <div className="flex items-center ">
+      <Link href="/">
         <Image src="/logo.png" alt="Logo" width={120} height={60} />
-      </div>
+      </Link>
 
       {/* Center Links */}
       <div className="hidden md:flex justify-center items-center gap-4  text-white ">
         <Link href="/" className="bg-orange-400 rounded-2xl py-1 px-3">
           Anasayfa
         </Link>
-        <Link href="/menu" className="bg-orange-400 rounded-2xl py-1 px-3">
+        <Link href="/" className="bg-orange-400 rounded-2xl py-1 px-3">
           Hakkımızda
         </Link>
         <Link href="/menu" className="bg-orange-400 rounded-2xl py-1 px-3">

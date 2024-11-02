@@ -9,7 +9,7 @@ import Image from "next/image";
 
 const Slider = () => {
   return (
-    <div className="h-screen w-full relative my-swiper-container z-0">
+    <div className="h-screen w-full relative my-swiper-container z-0 ">
       <Swiper
         modules={[Autoplay, Pagination, EffectFade]}
         loop={true}

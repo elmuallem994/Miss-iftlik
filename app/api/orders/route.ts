@@ -90,7 +90,7 @@ export const POST = async (req: NextRequest) => {
       orderId: order.id,
       productId: product.id,
       title: product.title,
-      desc: product.desc || null,
+      desc: product.desc, // تأكد من تمرير الوصف هنا أيضًا
       img: product.img || null,
       quantity: product.quantity,
       price: product.price,

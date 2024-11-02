@@ -3,22 +3,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { OrderType } from "../types/types";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import Image from "next/image";
 import LoadingSpinner from "@/app/components/ui/loadingSpinner";
-import { useEffect } from "react";
+import OrderStatus from "@/components/orderStatus";
 
 const OrdersPage = () => {
-  const { user, isSignedIn } = useUser();
-  const router = useRouter();
-
-  // التحقق مما إذا كان المستخدم غير مسجل دخوله
-  useEffect(() => {
-    if (!isSignedIn) {
-      router.push("/sign-in");
-    }
-  }, [isSignedIn, router]);
+  const { user } = useUser();
 
   // التحقق مما إذا كان المستخدم مشرفًا
   const role = user?.publicMetadata?.role === "admin";
@@ -43,122 +33,172 @@ const OrdersPage = () => {
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("تم تحديث حالة الطلب بنجاح!");
     },
   });
 
   const handleUpdate = (e: React.FormEvent<HTMLFormElement>, id: string) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
-    const input = form.elements[0] as HTMLInputElement;
-    const status = input.value;
+    const select = form.elements[0] as HTMLSelectElement;
+    const status = select.value || "Alındı"; // تعيين الحالة الافتراضية
 
     mutation.mutate({ id, status });
-    toast.success("The order status has been changed!");
   };
 
-  if (isPending) return <LoadingSpinner />; // عرض مكون التحميل إذا كان جاري التحميل
+  if (isPending) return <LoadingSpinner />;
 
   if (error) return "An error has occurred: " + error.message;
 
   return (
-    <div className="p-4 lg:px-20 xl:px-40">
-      <table className="w-full border-separate border-spacing-3">
-        <thead>
-          <tr className="text-left">
-            <th className="hidden md:block">Order ID</th>
-            <th> انشاء الطلب </th>
-            {role && <th>معلومات تسجيل الدخول</th>} {/* يظهر فقط للمشرف */}
-            <th>تاريخ التسليم</th> {/* عمود لعرض اليوم والتاريخ */}
-            <th>معلومات المستلم</th>
-            {role && <th>العنوان</th>} {/* عرض العنوان للمشرف فقط */}
-            {role && <th>المنطقة</th>} {/* عرض اسم المنطقة للمشرف فقط */}
-            <th className="hidden md:block">المنتجات</th>
-            <th>السعر</th>
-            <th>حالة الطلب</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item: OrderType) => (
-            <tr
-              className={`bg-red-50 blink-green`} // إضافة الوميض لجميع الحالات
-              key={item.id}
-            >
-              <td className="hidden md:block py-6 px-1">
-                #{item.id.replace(/\D/g, "").slice(-4)}{" "}
-                {/* إزالة الحروف وعرض آخر 4 أرقام فقط */}
-              </td>
+    <div className="flex justify-center items-center min-h-screen ">
+      <div className="p-4 lg:px-20 xl:px-40 main-content text-white min-h-screen w-[75%]">
+        <h1 className="glowing-text text-center text-4xl text-white font-extralight mb-12">
+          Siparişlerim
+        </h1>
 
-              <td className="py-6 px-1">
-                {item.createdAt.toString().slice(0, 10)}
-              </td>
+        {data.map((item: OrderType) => (
+          <div
+            key={item.id}
+            className="mb-9 border border-orange-300 rounded-xl bg-orange-50 p-6"
+          >
+            {/* القسم العلوي: يحتوي على المعلومات على اليسار والمنتجات على اليمين */}
+            <div className="flex justify-between mb-4">
+              {/* القسم اليساري: تفاصيل الطلب */}
+              <div className="w-1/2">
+                <p className="text-orange-600 font-bold text-lg mb-2">
+                  Order ID:{" "}
+                  <span className="text-gray-700">
+                    #{item.id.replace(/\D/g, "").slice(-4)}
+                  </span>
+                </p>
+                <div className="flex p-2">
+                  <p className="text-orange-600 font-semibold w-32">
+                    تاريخ الطلب:
+                  </p>
+                  <p className="text-gray-700">
+                    {item.createdAt.toString().slice(0, 10)}
+                  </p>
+                </div>
+                <div className="flex p-2">
+                  <p className="text-orange-600 font-semibold w-32">
+                    تاريخ التسليم:
+                  </p>
+                  <p className="text-gray-700">{item.deliveryDate}</p>
+                </div>
+                <div className="flex p-2">
+                  <p className="text-orange-600 font-semibold w-32">
+                    معلومات المستلم:
+                  </p>
+                  <p className="text-gray-700">{item.recipientInfo}</p>
+                </div>
+                {role && (
+                  <>
+                    <div className="flex p-2">
+                      <p className="text-orange-600 font-semibold w-32">
+                        معلومات المستخدم:
+                      </p>
+                      <p className="text-gray-700">{item.user.name}</p>
+                    </div>
+                    <div className="flex p-2">
+                      <p className="text-orange-600 font-semibold w-32">
+                        البريد الإلكتروني:
+                      </p>
+                      <p className="text-gray-500">{item.user.email}</p>
+                    </div>
+                    <div className="flex p-2">
+                      <p className="text-orange-600 font-semibold w-32">
+                        الهاتف:
+                      </p>
+                      <p className="text-gray-700">{item.user.phoneNumber}</p>
+                    </div>
+                    <div className="flex p-2">
+                      <p className="text-orange-600 font-semibold w-32">
+                        العنوان:
+                      </p>
+                      <p className="text-gray-700">
+                        {item.address?.adres || "غير متوفر"}
+                      </p>
+                    </div>
+                    <div className="flex p-2">
+                      <p className="text-orange-600 font-semibold w-32">
+                        المنطقة:
+                      </p>
+                      <p className="text-gray-700">
+                        {item.address?.region?.name || "غير متوفر"}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
 
-              {role && (
-                <td className="py-6 px-1">
-                  <p>{item.user.name}</p>
-                  <p>{item.user.email}</p>
-                  <p>{item.user.phoneNumber}</p>
-                </td>
-              )}
-
-              <td className="py-6 px-1">{item.deliveryDate}</td>
-
-              <td className="py-6 px-1">
-                <p>{item.recipientInfo}</p>{" "}
-                {/* Displaying recipient information */}
-              </td>
-
-              {/* عرض User Info و Address و Region للمشرف فقط */}
-              {role && (
-                <>
-                  <td className="py-6 px-1">
-                    {item.address && (
-                      <>
-                        {item.address.il && item.address.ilce && (
-                          <p>{`${item.address.il} / ${item.address.ilce}`}</p>
-                        )}
-                        {item.address.mahalle && <p>{item.address.mahalle}</p>}
-                        {item.address.adres && <p>{item.address.adres}</p>}
-                      </>
-                    )}
-                  </td>
-
-                  <td className="py-6 px-1">
-                    {item.address?.region?.name || "Region data not available"}
-                  </td>
-                </>
-              )}
-
-              <td className="hidden md:block py-6 px-1">
-                {item.orderItems.map((product) => (
+              {/* القسم اليميني: قائمة المنتجات */}
+              <div className="w-1/2 border-l border-orange-300 pl-4">
+                <h2 className="text-orange-600 font-semibold mb-4">المنتجات</h2>
+                {item.orderItems.map((product, index) => (
                   <div
                     key={product.productId}
-                  >{`${product.title} x ${product.quantity}`}</div>
-                ))}
-              </td>
-              <td className="py-6 px-1">{item.price}</td>
-
-              {role ? (
-                <td>
-                  <form
-                    className="flex items-center justify-center gap-4"
-                    onSubmit={(e) => handleUpdate(e, item.id)}
+                    className="flex justify-between items-center mb-2"
                   >
-                    <input
-                      placeholder={item.status}
-                      className="p-2 ring-1 ring-red-100 rounded-md"
-                    />
-                    <button className="bg-orange-400 p-2 rounded-full">
-                      <Image src="/edit.png" alt="" width={20} height={20} />
-                    </button>
-                  </form>
-                </td>
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-semibold bg-orange-600 text-orange-50 rounded-full mr-3">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="font-semibold text-gray-700">
+                          {product.title}
+                        </p>
+                        <p
+                          className="text-gray-500 text-sm mt-1"
+                          title={product.desc}
+                        >
+                          {product.desc.length > 30
+                            ? `${product.desc.slice(0, 30)}...`
+                            : product.desc}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-orange-600">
+                      Adet: {product.quantity}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* القسم السفلي: يحتوي على السعر وحالة الطلب مع إعدادات التحديث للمشرف */}
+            <div className="flex justify-between items-center mt-4 border-t border-orange-300 pt-4">
+              <div className="text-green-600 text-2xl font-semibold">
+                {item.price} TL
+              </div>
+              {role ? (
+                <form
+                  onSubmit={(e) => handleUpdate(e, item.id)}
+                  className="flex items-center gap-2"
+                >
+                  <select
+                    className="w-36 p-1 bg-gray-200 text-gray-800 border border-gray-500 rounded-md"
+                    defaultValue={item.status || "Alındı"}
+                  >
+                    <option value="Alındı"> Alındı</option>
+                    <option value="hazırlanıyor"> Hazırlanıyor</option>
+                    <option value="Yolda"> Yolda </option>
+                    <option value="teslim edildi">teslim edildi</option>
+                  </select>
+
+                  <button className="p-3 text-white bg-orange-500 rounded-full hover:bg-orange-600">
+                    حفظ
+                  </button>
+                </form>
               ) : (
-                <td className="py-6 px-1">{item.status}</td>
+                <div className="w-[38%] font-medium text-gray-600">
+                  <OrderStatus status={item.status} />
+                </div>
               )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

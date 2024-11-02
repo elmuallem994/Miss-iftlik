@@ -26,7 +26,12 @@ const CartIcon = () => {
       {user?.publicMetadata?.role === "admin" ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button>Admin Menu</Button>
+            <Button
+              variant="outline"
+              className="text-white bg-red-400 rounded-2xl"
+            >
+              Admin Menu
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-48">
             <DropdownMenuItem asChild>
@@ -43,7 +48,7 @@ const CartIcon = () => {
       ) : (
         <Link href="/cart">
           <div className="relative flex items-center bg-orange-400 p-2 rounded-full">
-            <ShoppingCart className="text-white w-5 h-5" />
+            <ShoppingCart className="text-white w-6 h-6 md:w-5 md:h-5" />
             {totalItems > 0 && (
               <div className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                 {totalItems}

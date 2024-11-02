@@ -18,6 +18,14 @@ body {
   scroll-behavior: smooth;
 }
 
+.specific-section {
+  overflow-x: hidden;
+}
+
+.main-content {
+  margin-top: 10rem; /* عدل الرقم بناءً على ارتفاع النافبار */
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -238,4 +246,23 @@ body {
     text-shadow: 0 0 10px #ff6a00, 0 0 20px #ff6a00, 0 0 30px #ff6a00,
       0 0 40px #ff8000, 0 0 50px #ff8000;
   }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(34, 193, 195, 0.4);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 30px rgba(34, 193, 195, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(34, 193, 195, 0);
+  }
+}
+
+.pulsing-icon {
+  animation: pulse 2s infinite;
 }

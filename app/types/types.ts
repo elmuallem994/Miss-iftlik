@@ -2,9 +2,8 @@ export type MenuType = {
   id: string;
   slug: string;
   title: string;
-  desc?: string;
+  desc: string;
   img: string;
-  color: string;
 }[];
 
 export type UserType = {
@@ -41,7 +40,7 @@ export type OrderItemType = {
   orderId: string; // معرف الطلب
   productId: string; // معرف المنتج
   title: string; // اسم المنتج
-  desc?: string; // وصف المنتج
+  desc: string; // وصف المنتج
   img: string; // صورة المنتج
   quantity: number; // الكمية المطلوبة
   price: number; // سعر المنتج للطلب
@@ -50,16 +49,17 @@ export type OrderItemType = {
 export type ProductType = {
   id: string;
   title: string;
-  desc?: string;
+  desc: string;
   img: string;
   price: number;
+  optionTitle?: string;
   quantity: number;
 };
 
 export type CartItemType = {
   id: string;
   title: string;
-  desc?: string;
+  desc: string;
   img: string;
   price: number;
   optionTitle?: string;

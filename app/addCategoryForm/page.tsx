@@ -28,7 +28,7 @@ const categorySchema = z.object({
   desc: z
     .string()
     .min(5, { message: "الوصف مطلوب (يجب أن يكون 5 أحرف على الأقل)" }),
-  color: z.string().min(3, { message: "اللون مطلوب" }),
+
   slug: z.string().min(3, { message: "الـ Slug مطلوب" }),
 });
 
@@ -45,7 +45,6 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
     defaultValues: {
       title: categoryData?.title || "",
       desc: categoryData?.desc || "",
-      color: categoryData?.color || "",
       slug: categoryData?.slug || "",
     },
   });
@@ -183,23 +182,7 @@ const AddCategoryForm = ({ categoryData }: { categoryData?: any }) => {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>اللون</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="أدخل اللون"
-                    disabled={isLoading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
           <FormField
             control={form.control}
             name="slug"
