@@ -73,6 +73,11 @@ model OrderItem {
   desc      String  // حفظ وصف المنتج
   img       String?  // حفظ صورة المنتج (اختياري)
   price     Decimal  // حفظ سعر المنتج
+  startTime String?        // حفظ نسخة من وقت البدء كـ 
+  endTime   String?        // حفظ نسخة من وقت الانتهاء كـ 
+  address    String?  // حفظ نسخة من العنوان
+  regionName String?  // حفظ نسخة من اسم المنطقة
+  neighborhoods String? // حفظ نسخة من الحي (إذا كانت موجودة)
   quantity  Int
  
   createdAt DateTime @default(now())
@@ -85,8 +90,7 @@ model OrderItem {
 
 model Address {
   id         Int      @id @default(autoincrement())
-  il         String   // City
-  neighborhoods   String   
+  il         String   // City 
   adres      String   // Full address
   region     Region   @relation(fields: [regionId], references: [id]) // ربط العنوان بالمنطقة
   regionId   Int

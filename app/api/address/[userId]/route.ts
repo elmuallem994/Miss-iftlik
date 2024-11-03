@@ -27,10 +27,12 @@ export const GET = async (
     return NextResponse.json({
       addressId: address.id,
       il: address.il,
-      neighborhoods: address.neighborhoods,
       adres: address.adres,
       regionId: address.regionId,
       regionName: address.region.name,
+      neighborhoods: address.region.neighborhoods, // إضافة الحي من المنطقة
+      startTime: address.region.startTime, // إضافة وقت البدء من المنطقة
+      endTime: address.region.endTime, // إضافة وقت الانتهاء من المنطقة
     });
   } catch (error) {
     return NextResponse.json(

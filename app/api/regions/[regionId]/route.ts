@@ -22,30 +22,27 @@ export const GET = async (
       );
     }
 
-    // Get all regions with the same name as the fetched region
-    const allRegionsWithSameName = await prisma.region.findMany({
-      where: { name: region.name },
-    });
+    // التحقق من وجود المصفوفة بشكل صحيح
+    const deliveryDays = region.deliveryDays;
 
-    // Combine all neighborhoods from all fetched regions
-    const allNeighborhoods = allRegionsWithSameName.flatMap((r) =>
-      r.neighborhoods
-        ? r.neighborhoods.split(",").map((neigh) => neigh.trim())
-        : []
-    );
-
-    // تحقق مما إذا كان حقل الأحياء فارغًا وأعد رسالة تشير إلى أن جميع الأحياء متاحة
-    let responseMessage;
-    if (allNeighborhoods.length === 0) {
-      responseMessage = "جميع الأحياء متاحة";
-    } else {
-      responseMessage = Array.from(new Set(allNeighborhoods)); // Unique neighborhoods
+    // التحقق مما إذا كانت المصفوفة فارغة
+    if (!deliveryDays) {
+      return NextResponse.json({
+        message: "No delivery days available for this region",
+        regionName: region.name,
+        deliveryDays: [],
+        startTime: region.startTime, // إضافة وقت البدء
+        endTime: region.endTime, // إضافة وقت النهاية
+      });
     }
 
-    // Return unique neighborhoods list or a message indicating all are available
+    // إرجاع اسم المنطقة وأيام التوصيل ووقت التسليم
     return NextResponse.json({
       regionName: region.name,
-      neighborhoods: responseMessage,
+      neighborhoods: region.neighborhoods,
+      deliveryDays: deliveryDays, // إرجاع أيام التوصيل
+      startTime: region.startTime, // إضافة وقت البدء
+      endTime: region.endTime, // إضافة وقت النهاية
     });
   } catch (error) {
     console.error("Error fetching region data:", error);

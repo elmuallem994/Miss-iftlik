@@ -45,6 +45,11 @@ export const GET = async () => {
     const orders = await prisma.order.findMany({
       where: { userId },
       include: {
+        address: {
+          include: {
+            region: true, // تضمين بيانات المنطقة للمستخدم العادي
+          },
+        },
         orderItems: true, // تضمين العناصر المرتبطة بالطلب
       },
     });
@@ -94,6 +99,11 @@ export const POST = async (req: NextRequest) => {
       img: product.img || null,
       quantity: product.quantity,
       price: product.price,
+      startTime: orderData.startTime,
+      endTime: orderData.endTime,
+      address: orderData.fullAddress, // حفظ العنوان
+      regionName: orderData.regionName, // حفظ اسم المنطقة
+      neighborhoods: orderData.neighborhoods, // حفظ اسم الحي (إذا كان موجود)
     }));
 
     // حفظ السجلات في جدول OrderItems

@@ -5,12 +5,14 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import prisma from "@/utils/connect";
 
 // API for creating a new address
+// API for creating a new address
 export async function POST(req: NextRequest) {
   try {
-    // Extract the necessary fields
-    const { il, neighborhoods, adres, regionId } = await req.json();
+    // استخراج الحقول الضرورية
+    const { il, adres, regionId } = await req.json(); // لا داعي لـ neighborhoods بعد الآن
+    console.log({ il, adres, regionId });
 
-    // Authenticate the user
+    // تحقق من المصادقة
     const { userId } = auth();
 
     if (!userId) {
@@ -20,14 +22,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if the user exists in the database
+    // تحقق مما إذا كان المستخدم موجودًا في قاعدة البيانات
     let user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
     });
 
-    // Create the user if they don't exist
+    // إذا لم يكن المستخدم موجودًا، قم بإنشائه
     if (!user) {
       const clerkUser = await clerkClient.users.getUser(userId);
       user = await prisma.user.create({
@@ -41,7 +43,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Validate the region ID
+    // تحقق من صحة معرف المنطقة (regionId)
     const region = await prisma.region.findUnique({
       where: { id: regionId },
     });
@@ -53,14 +55,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create the new address
+    // إنشاء العنوان الجديد
     const newAddress = await prisma.address.create({
       data: {
         il,
-        neighborhoods,
         adres,
         regionId,
-        userId, // Link the address to the user
+        userId, // ربط العنوان بالمستخدم
       },
     });
 
@@ -106,7 +107,7 @@ export async function GET() {
 // API لتعديل العنوان
 export async function PUT(req: NextRequest) {
   try {
-    const { il, neighborhoods, adres, regionId } = await req.json(); // جلب بيانات العنوان المعدل
+    const { il, adres, regionId } = await req.json(); // جلب بيانات العنوان المعدل
     const { userId } = auth(); // جلب معرف المستخدم من Clerk
 
     if (!userId) {
@@ -123,7 +124,6 @@ export async function PUT(req: NextRequest) {
       },
       data: {
         il,
-        neighborhoods,
         adres,
         regionId,
       },

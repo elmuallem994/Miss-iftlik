@@ -44,6 +44,11 @@ export type OrderItemType = {
   img: string; // صورة المنتج
   quantity: number; // الكمية المطلوبة
   price: number; // سعر المنتج للطلب
+  startTime?: string; // وقت البدء (اختياري)
+  endTime?: string; // وقت الانتهاء (اختياري)
+  address?: string; // العنوان (اختياري)
+  regionName?: string; // اسم المنطقة (اختياري)
+  neighborhoods?: string; // اسم الحي (اختياري)
 };
 
 export type ProductType = {
@@ -86,8 +91,10 @@ export type AddressType = {
   mahalle: string;
   adres: string;
   region?: {
-    // إضافة الخاصية region
     id: number;
     name: string;
+    neighborhoods: string;
+    startTime: string; // إضافة وقت البدء
+    endTime: string; // إضافة وقت النهاية
   };
 };

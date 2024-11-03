@@ -28,19 +28,20 @@ import {
 import { Input } from "@/app/components/ui/input";
 import { Pencil, MapPin } from "lucide-react";
 import { Button } from "../components/ui/button";
+import Link from "next/link";
+import { FaWhatsapp } from "react-icons/fa";
 
 // Define the Region type
 type Region = {
   id: number;
   name: string;
-  neighborhoods: string[] | null;
+  neighborhoods: string;
 };
 
 // Zod schema for form validation
 const addressSchema = z.object({
   il: z.string().min(1, { message: "Il (City) is required" }),
   adres: z.string().min(1, { message: "Adres (Full Address) is required" }),
-  neighborhoods: z.string().min(1, { message: "Region is required" }),
   regionId: z.number().min(1, { message: "Region is required" }),
 });
 
@@ -53,14 +54,12 @@ const AddressPage: React.FC = () => {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [address, setAddress] = useState<AddressFormValues | null>(null);
-  const [neighborhoods, setNeighborhoods] = useState<string[]>([]); // Array of neighborhoods
 
   // Initialize the form with react-hook-form and zod resolver
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      il: address?.il || "",
-      neighborhoods: address?.neighborhoods,
+      il: address?.il || "Istanbul", // تأكد من تعيين القيمة الافتراضية "Istanbul"
       adres: address?.adres || "",
       regionId: address?.regionId || undefined,
     },
@@ -73,12 +72,8 @@ const AddressPage: React.FC = () => {
         const res = await fetch("http://localhost:3000/api/regions");
         const data: Region[] = await res.json();
 
-        // Filter unique regions based on name
-        const uniqueRegions = Array.from(
-          new Set(data.map((region) => region.name))
-        ).map((name) => data.find((region) => region.name === name));
-
-        setRegions(uniqueRegions as Region[]);
+        // لا نقوم بفلترة أو دمج الأسماء، نعرض كل شيء كما هو من قاعدة البيانات
+        setRegions(data);
       } catch (error) {
         console.error("Error fetching regions:", error);
       }
@@ -104,26 +99,6 @@ const AddressPage: React.FC = () => {
     fetchRegions();
     fetchAddress();
   }, [form]);
-
-  // Function to fetch neighborhoods when selecting a region
-  const fetchNeighborhoods = async (regionId: string) => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/regions/${regionId}`);
-      if (res.ok) {
-        const data = await res.json();
-        console.log("Fetched Neighborhoods: ", data.neighborhoods);
-
-        // Ensure neighborhoods is set to an array, even if it's empty
-        setNeighborhoods(
-          Array.isArray(data.neighborhoods) ? data.neighborhoods : []
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching neighborhoods:", error);
-      // Set neighborhoods to an empty array on error
-      setNeighborhoods([]);
-    }
-  };
 
   // Handle form submission for creating a new address
   const createAddress = async (data: AddressFormValues) => {
@@ -194,64 +169,80 @@ const AddressPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex flex-col justify-center items-center gap-3 pt-7">
-        <h2 className=" text-4xl text-orange-600 font-bold tracking-tight ">
+    <div className="p-4 main-content ">
+      <div className="flex flex-col justify-center items-center gap-3 ">
+        <h2 className=" text-4xl text-orange-500 font-bold tracking-tight ">
           Teslimat adresi
         </h2>
-        <p className="text-base text-muted-foreground text-orange-500">
+        <p className="text-base text-muted-foreground text-orange-400">
           Burada teslimat adresinizi ekleyebilir ve değiştirebilirsiniz
         </p>
       </div>
-      <Separator />
+
       {address && (
-        <div className="flex justify-center items-center pt-20">
-          <div className="border p-6 rounded-xl shadow-xl shadow-gray-200 bg-orange-50 max-w-3xl mx-auto">
-            <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-center items-center pt-10">
+          <div className=" p-8 rounded-3xl shadow-lg bg-orange-50 max-w-3xl w-full mx-auto">
+            {/* Başlık */}
+            <div className="flex justify-between items-center mb-6">
               <div className="flex items-center">
-                <MapPin className="w-6 h-6 text-orange-500 mr-2" />
-                <h3 className="text-xl font-bold text-gray-700">
-                  معلومات العنوان
+                <MapPin className="w-6 h-6 text-orange-500 mr-2 " />
+                <h3 className="text-3xl font-semibold text-gray-500">
+                  Adresim
                 </h3>
               </div>
-              <Button
-                className="cursor-pointer rounded-full bg-orange-500 hover:bg-orange-600 p-3"
-                onClick={() => setIsEditModalOpen(true)}
-              >
-                <span className="text-white font-medium pr-3 ">düzenle</span>
-                <Pencil className="w-5 h-5 text-white" />
-              </Button>
+              <div className="flex justify-end w-full ">
+                <Button
+                  className="px-4 py-2  bg-orange-500 text-white rounded-full shadow-md hover:bg-orange-600 transition-colors"
+                  onClick={() => setIsEditModalOpen(true)}
+                >
+                  <Pencil className="w-5 h-5 mr-2" />
+                  <span className="text-sm font-medium">Düzenle</span>
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2 text-gray-700 p-2">
-              <p>
-                <strong className="text-gray-800 p-2 ">Şehir:</strong>{" "}
-                {address.il}
-              </p>
 
-              <p>
-                <strong className="text-gray-800 p-2">Mahalle:</strong>{" "}
-                {address.neighborhoods}
-              </p>
-              <p>
-                <strong className="text-gray-800 p-2">Tam Adres:</strong>{" "}
-                {address.adres}
-              </p>
+            {/* Adres Detayları */}
+            <div className="space-y-4 text-gray-700">
+              <div className="flex flex-col items-start ">
+                <strong className="text-orange-400 pb-1">Şehir:</strong>
+                <p>{address.il}</p>
+              </div>
+
+              <div className="flex flex-col items-start">
+                <strong className="text-orange-400 pb-1">Mahalle:</strong>
+                <p>
+                  {regions.find((region) => region.id === address.regionId)
+                    ? `${
+                        regions.find((region) => region.id === address.regionId)
+                          ?.name
+                      } - ${
+                        regions.find((region) => region.id === address.regionId)
+                          ?.neighborhoods
+                      }`
+                    : "Mevcut değil"}
+                </p>
+              </div>
+
+              <div className="flex flex-col items-start">
+                <strong className="text-orange-400 pb-1 ">Tam Adres:</strong>
+                <p className="max-w-sm w-full ">{address.adres}</p>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit Dialog */}
+      {/* Düzenleme Dialogu */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="bg-white shadow-xl rounded-2xl p-8 max-w-lg mx-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-800">
-              {address ? "تعديل العنوان" : "إضافة عنوان جديد"}
+              {address ? "Adresi Düzenle" : "Yeni Adres Ekle"}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
               {address
-                ? "قم بتعديل تفاصيل العنوان الحالي واحفظ التعديلات."
-                : "أدخل تفاصيل العنوان الجديد واحفظه."}
+                ? "Mevcut adres bilgilerini düzenleyin ve değişiklikleri kaydedin."
+                : "Yeni adres bilgilerini girin ve kaydedin."}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -259,19 +250,20 @@ const AddressPage: React.FC = () => {
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-4 w-full"
             >
-              {/* حقول الفورم */}
+              {/* Form Alanları */}
               <FormField
                 control={form.control}
                 name="il"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-600">Il (City)</FormLabel>
+                    <FormLabel className="text-orange-400">Şehir</FormLabel>
                     <FormControl>
                       <Input
-                        disabled={loading}
-                        placeholder="City"
-                        className="border-gray-300 rounded-lg focus:border-orange-600"
-                        {...field}
+                        {...field} // alanı formda tutmak için spread operator
+                        readOnly // düzenlemeyi engelle
+                        autoFocus={false} // sayfa veya modal açıldığında otomatik odaklanmayı engelle
+                        className=" bg-gray-100 text-gray-500"
+                        style={{ pointerEvents: "none" }} // fare ile tıklamayı devre dışı bırak
                       />
                     </FormControl>
                     <FormMessage />
@@ -284,55 +276,25 @@ const AddressPage: React.FC = () => {
                 name="regionId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Region (Select your region)</FormLabel>
+                    <FormLabel className="text-orange-400">
+                      ilçe - mahalle
+                    </FormLabel>
                     <FormControl>
                       <select
                         disabled={loading}
                         {...field}
-                        className="p-2 border rounded"
+                        className="p-2 border rounded w-full"
                         onChange={(e) => {
-                          const selectedRegionId = Number(e.target.value); // Convert value to number
-                          field.onChange(selectedRegionId); // Update form state with number
-                          fetchNeighborhoods(selectedRegionId.toString()); // Fetch neighborhoods with a string representation
+                          const selectedRegionId = Number(e.target.value); // değeri sayıya çevir
+                          field.onChange(selectedRegionId); // formdaki bölge kimliğini güncelle
                         }}
                       >
-                        <option value="">Select a region</option>
+                        <option value="">Bölge ve mahalleyi seçin</option>
                         {regions.map((region) => (
                           <option key={region.id} value={region.id}>
-                            {region.name}
+                            {region.name} - {region.neighborhoods}
                           </option>
                         ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="neighborhoods"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>neighborhoods (Neighborhood)</FormLabel>
-                    <FormControl>
-                      <select
-                        disabled={loading}
-                        {...field}
-                        className="p-2 border rounded"
-                        onChange={(e) => field.onChange(e.target.value)}
-                      >
-                        <option value="">Select a neighborhood</option>
-                        {Array.isArray(neighborhoods) &&
-                        neighborhoods.length > 0 ? (
-                          neighborhoods.map((neighborhood) => (
-                            <option key={neighborhood} value={neighborhood}>
-                              {neighborhood}
-                            </option>
-                          ))
-                        ) : (
-                          <option value="">All neighborhoods available</option>
-                        )}
                       </select>
                     </FormControl>
                     <FormMessage />
@@ -345,11 +307,11 @@ const AddressPage: React.FC = () => {
                 name="adres"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Adres (Full Address)</FormLabel>
+                    <FormLabel className="text-orange-400">Tam Adres</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Full Address"
+                        placeholder="Tam Adres"
                         {...field}
                       />
                     </FormControl>
@@ -357,14 +319,36 @@ const AddressPage: React.FC = () => {
                   </FormItem>
                 )}
               />
+              <div className="flex flex-col space-y-4 mt-4">
+                <Button
+                  disabled={loading}
+                  className="w-full text-md bg-orange-600 hover:bg-orange-700 text-white rounded-lg py-2"
+                  type="submit"
+                >
+                  {address ? "Değişiklikleri Kaydet" : "Gönder"}
+                </Button>
 
-              <Button
-                disabled={loading}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-lg py-2"
-                type="submit"
-              >
-                {address ? "حفظ التعديلات" : "إرسال"}
-              </Button>
+                <Separator />
+
+                {/* رسالة بجانب الزر */}
+                <div className="flex flex-col items-center">
+                  <p className="text-sm text-red-600 text-center mt-2">
+                    Eğer bölgeniz listede yoksa, lütfen WhatsApp üzerinden{" "}
+                    <br /> bizimle iletişime geçin.
+                  </p>
+
+                  {/* زر واتساب */}
+                  <Link
+                    href="https://wa.me/905348228865"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 text-xs inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition-colors"
+                  >
+                    <FaWhatsapp className="w-4 h-4 mr-2" />
+                    WhatsApp ile iletişime geç
+                  </Link>
+                </div>
+              </div>
             </form>
           </Form>
         </DialogContent>

@@ -20,17 +20,18 @@ import LoadingSpinner from "@/app/components/ui/loadingSpinner";
 import { Pencil } from "lucide-react";
 
 const CartPage = () => {
-  // إضافة حالات لتخزين اسم ورقم المستلم
   const [recipientName, setRecipientName] = useState<string>("");
   const [recipientPhone, setRecipientPhone] = useState<string>("");
-  const [message, setMessage] = useState<string | null>(null); // حالة لتخزين الرسالة
+  const [message, setMessage] = useState<string | null>(null);
   const [deliveryDays, setDeliveryDays] = useState<string[]>([]);
   const [deliveryDates, setDeliveryDates] = useState<Date[]>([]);
-  const [regionName, setRegionName] = useState<string | null>(null); // New state for region name
-  const [fullAddress, setFullAddress] = useState<string | null>(null); // حالة لتخزين العنوان الكامل
+  const [regionName, setRegionName] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<string | null>(null); // حالة لتخزين وقت البدء
+  const [endTime, setEndTime] = useState<string | null>(null); // حالة لتخزين وقت الانتهاء
+  const [fullAddress, setFullAddress] = useState<string | null>(null);
 
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [error, setError] = useState<string | null>(null); // حالة الرسالة
+  const [error, setError] = useState<string | null>(null);
   const { products, totalItems, totalPrice, removeFromCart } = useCartStore();
   const { isSignedIn, user } = useUser();
   const setLoading = useLoadingStore((state) => state.setLoading);
@@ -43,7 +44,7 @@ const CartPage = () => {
 
   const calculateDeliveryDates = (days: string[]) => {
     const today = new Date();
-    const todayDay = getDay(today); // جلب اليوم الحالي كرقم (0: الأحد، 6: السبت)
+    const todayDay = getDay(today);
 
     const dayMap: Record<string, number> = {
       Sunday: 0,
@@ -58,7 +59,7 @@ const CartPage = () => {
     const dates = days.map((day) => {
       const targetDay = dayMap[day];
       const dayDifference = (targetDay + 7 - todayDay) % 7;
-      return addDays(today, dayDifference === 0 ? 0 : dayDifference); // إذا كان الفرق صفراً، نعيد اليوم الحالي
+      return addDays(today, dayDifference === 0 ? 0 : dayDifference);
     });
 
     return dates;
@@ -82,6 +83,10 @@ const CartPage = () => {
         }
 
         const regionId = regionData.regionId;
+        const startTime = regionData.startTime; // تأكد من إحضار startTime من regionData
+        const endTime = regionData.endTime; // تأكد من إحضار endTime من regionData
+        const regionName = regionData.regionName; // تأكد من إحضار startTime من regionData
+        const neighborhoods = regionData.neighborhoods; // تأكد من إحضار endTime من regionData
 
         const addressResponse = await fetch(
           `http://localhost:3000/api/address/${user?.id}`
@@ -95,18 +100,6 @@ const CartPage = () => {
 
         const recipientInfo = `${recipientName}\n${recipientPhone}`;
 
-        console.log(
-          "Products data before sending:",
-          products.map((product) => ({
-            id: product.id,
-            title: product.title,
-            desc: product.desc, // التأكد من أن الوصف يظهر هنا
-            img: product.img,
-            quantity: product.quantity,
-            price: product.price,
-          }))
-        );
-
         const res = await fetch("http://localhost:3000/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -119,7 +112,7 @@ const CartPage = () => {
               products: products.map((product) => ({
                 id: product.id,
                 title: product.title,
-                desc: product.desc, // التأكد من إضافة الوصف هنا
+                desc: product.desc,
                 img: product.img,
                 quantity: product.quantity,
                 price: product.price,
@@ -132,6 +125,11 @@ const CartPage = () => {
               regionId: regionId,
               addressId: addressId,
               recipientInfo: recipientInfo,
+              startTime: startTime,
+              endTime: endTime,
+              fullAddress: fullAddress, // إضافة العنوان الكامل
+              regionName: regionName, // إضافة اسم المنطقة
+              neighborhoods: neighborhoods, // إضافة أسماء الأحياء إذا كانت موجودة
             },
           }),
         });
@@ -161,16 +159,18 @@ const CartPage = () => {
       }
 
       const addressData = await addressResponse.json();
-      console.log("Address Data:", addressData); // طباعة البيانات هنا للتحقق
+      console.log("Address Data:", addressData);
 
       if (!addressData.regionId) {
         throw new Error("لم يتم العثور على معرف المنطقة لعنوان المستخدم");
       }
 
-      // إرجاع العنوان الكامل ومعرف المنطقة ككائن منفصل
       return {
-        fullAddress: `${addressData.il}, ${addressData.neighborhoods}, ${addressData.adres}`, // صيغة العنوان الكامل
+        fullAddress: `${addressData.il}, ${addressData.adres}`,
         regionId: addressData.regionId,
+        startTime: addressData.startTime, // تأكد من جلب وقت البدء
+        endTime: addressData.endTime, // تأكد من جلب وقت الانتهاء
+        regionName: addressData.regionName,
         neighborhoods: addressData.neighborhoods,
       };
     } catch (error) {
@@ -181,7 +181,6 @@ const CartPage = () => {
   };
 
   const fetchDeliveryDays = async () => {
-    // Check if user is signed in
     if (!isSignedIn) {
       setMessage("يرجى تسجيل الدخول للمتابعة.");
       setTimeout(() => {
@@ -194,7 +193,6 @@ const CartPage = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch address data, including neighborhood
       const addressData = await fetchRegionId();
       if (!addressData) {
         setMessage("يرجى إضافة عنوان للمتابعة.");
@@ -204,16 +202,12 @@ const CartPage = () => {
         return;
       }
 
-      const { fullAddress, neighborhoods } = addressData;
-
-      // Set the full address state
+      const { fullAddress, regionId } = addressData;
       setFullAddress(fullAddress);
 
-      // Fetch delivery days based on neighborhood
       const response = await fetch(
-        `http://localhost:3000/api/neighborhoods/${neighborhoods}`
+        `http://localhost:3000/api/regions/${regionId}`
       );
-
       if (!response.ok) {
         throw new Error("Failed to fetch delivery days");
       }
@@ -221,10 +215,11 @@ const CartPage = () => {
       const data = await response.json();
       setDeliveryDays(data.deliveryDays);
 
-      // Set the region name in state
-      setRegionName(data.regionName);
+      // إضافة startTime و endTime إلى الحالة
+      setRegionName(`${data.regionName} - ${data.neighborhoods}`);
+      setStartTime(data.startTime); // حفظ وقت البدء
+      setEndTime(data.endTime); // حفظ وقت الانتهاء
 
-      // Calculate delivery dates and sort them
       const calculatedDates = calculateDeliveryDates(data.deliveryDays);
       const sortedDates = calculatedDates.sort(compareAsc);
       setDeliveryDates(sortedDates);
@@ -243,7 +238,6 @@ const CartPage = () => {
         </div>
       )}
 
-      {/* PRODUCTS CONTAINER */}
       <div className="h-1/2 p-4 flex flex-col justify-center overflow-scroll lg:h-full lg:w-2/3 2xl:w-1/2 lg:px-20 xl:px-40">
         {products.map((item) => (
           <div className="flex items-center justify-between mb-4" key={item.id}>
@@ -254,8 +248,6 @@ const CartPage = () => {
               <h1 className="uppercase text-xl font-bold">
                 {item.title} {item.desc} x{item.quantity}
               </h1>
-
-              {/* إضافة الوصف هنا */}
               <span>{item.optionTitle}</span>
             </div>
             <h2 className="font-bold">{item.price} TL</h2>
@@ -269,7 +261,6 @@ const CartPage = () => {
         ))}
       </div>
 
-      {/* PAYMENT CONTAINER */}
       <div className="h-1/2 p-4 bg-orange-50 flex flex-col gap-4 justify-center lg:h-full lg:w-1/3 2xl:w-1/2 lg:px-20 xl:px-40 2xl:text-xl 2xl:gap-6">
         <div className="flex justify-between">
           <span>Subtotal ({totalItems} items)</span>
@@ -284,7 +275,6 @@ const CartPage = () => {
           <span>TOPLAM (KDV DAHİL)</span>
           <span className="font-bold">{totalPrice} TL</span>
         </div>
-        {/* Alert Dialog لعرض الأيام المتاحة */}
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <button
@@ -302,7 +292,11 @@ const CartPage = () => {
                 {regionName && (
                   <p className="text-lg font-semibold">المنطقة: {regionName}</p>
                 )}
-                {/* عرض اسم المنطقة */}
+                {startTime && endTime && (
+                  <p className="text-sm text-gray-600">
+                    وقت التسليم: {startTime} - {endTime}
+                  </p>
+                )}
                 {fullAddress ? (
                   <div className="flex items-start justify-between space-y-2">
                     <p className="text-gray-800 border border-gray-300 rounded-lg p-4 shadow-md bg-gray-50 leading-relaxed">
@@ -311,10 +305,9 @@ const CartPage = () => {
 
                     <button
                       className="bg-gray-200 p-1 rounded-md ml-4 hover:bg-gray-300 transition-colors"
-                      onClick={() => router.push("/address")} // توجيه المستخدم إلى صفحة تعديل العنوان
+                      onClick={() => router.push("/address")}
                     >
                       <Pencil className="w-5 h-5 text-gray-600" />
-                      {/* استخدام أيقونة للتعديل */}
                     </button>
                   </div>
                 ) : (
@@ -322,11 +315,9 @@ const CartPage = () => {
                     العنوان: لم يتم العثور على عنوان كامل
                   </p>
                 )}
-                {/* رسالة اختيار يوم التسليم */}
                 <p className="text-sm text-gray-600 pt-3 ">
                   اختر يوماً مناسباً من الأيام المتاحة للتسليم.
                 </p>
-                {/* حقول الإدخال لاسم ورقم المستلم */}
                 <div className="space-y-3">
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -356,9 +347,6 @@ const CartPage = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
 
-            {/* عرض الأيام المتاحة تحت بعضها */}
-
-            {/* عرض مؤشر التحميل إذا كان جاري تحميل الأيام */}
             {isLoading ? (
               <div className="flex justify-center items-center p-4 ">
                 <LoadingSpinner />
@@ -366,15 +354,15 @@ const CartPage = () => {
             ) : deliveryDates.length > 0 ? (
               <div>
                 {deliveryDates.map((date, index) => {
-                  const todayDay = getDay(new Date()); // تحديد اليوم الحالي
-                  const isToday = getDay(date) === todayDay; // التحقق إذا كان اليوم الحالي هو نفس يوم التاريخ
+                  const todayDay = getDay(new Date());
+                  const isToday = getDay(date) === todayDay;
 
                   return (
                     <div
                       key={index}
                       className={`flex items-center gap-3  my-4  ${
                         isToday ? "bg-red-100 text-red-600" : ""
-                      }`} // تغيير اللون إذا كان اليوم الحالي
+                      }`}
                     >
                       <input
                         type="radio"
@@ -394,7 +382,7 @@ const CartPage = () => {
                             );
                           }
                         }}
-                        disabled={isToday} // تعطيل اختيار اليوم الحالي
+                        disabled={isToday}
                       />
                       <label
                         htmlFor={`day-${index}`}
