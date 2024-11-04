@@ -25,7 +25,7 @@ export default function RootLayout({
       <QueryProvider>
         <html lang="en">
           {/** bg-primary-black text-secondary-white */}
-          <body className="bg-primary-black   antialiased">
+          <body className="bg-primary-black antialiased">
             <div className="main-container">
               <Notification />
               <Navbar />

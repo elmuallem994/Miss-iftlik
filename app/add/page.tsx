@@ -54,7 +54,10 @@ type ProductFormValues = z.infer<typeof productSchema>;
 const AddPage = ({ productData }: AddPageProps) => {
   const { isSignedIn, user } = useUser();
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(
+    productData?.img || null
+  );
+
   const [categories, setCategories] = useState<
     { id: string; title: string; slug: string }[]
   >([]);
@@ -73,12 +76,6 @@ const AddPage = ({ productData }: AddPageProps) => {
   });
 
   useEffect(() => {
-    if (!isSignedIn) {
-      router.push("/sign-in");
-    } else if (user?.publicMetadata.role !== "admin") {
-      router.push("/");
-    }
-
     const fetchCategories = async () => {
       try {
         const res = await fetch("http://localhost:3000/api/categories");
@@ -168,111 +165,127 @@ const AddPage = ({ productData }: AddPageProps) => {
   };
 
   return (
-    <div className="p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex items-center justify-center">
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="space-y-4 w-full"
-        >
-          <h1 className="text-4xl mb-2 text-gray-300 font-bold">
-            {productData ? "Edit Product" : "Add New Product"}
-          </h1>
-          <FormItem>
-            <FormLabel htmlFor="file">Upload Image</FormLabel>
-            <input
-              type="file"
-              onChange={handleChangeImg}
-              id="file"
-              className="hidden"
+    <div className="main-content p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex items-center justify-center">
+      <div className="bg-white p-8  rounded-lg shadow-lg  w-full max-w-3xl">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4 w-full"
+          >
+            <h1 className="text-3xl pb-7 text-orange-300 font-bold">
+              {productData ? "تعديل المنتج" : "أضف منتج جديد"}
+            </h1>
+            <FormItem>
+              <FormLabel
+                htmlFor="file"
+                className="cursor-pointer text-red-500 border p-2 "
+              >
+                Upload Image
+              </FormLabel>
+              <input
+                type="file"
+                onChange={handleChangeImg}
+                id="file"
+                className="hidden"
+              />
+              {preview ? (
+                <div className="mt-4">
+                  <Image
+                    src={preview}
+                    alt="Uploaded Preview"
+                    width={70}
+                    height={70}
+                    className="object-cover aspect-square rounded-md"
+                  />
+                  <p className="mt-2 text-green-500">
+                    Image uploaded successfully!
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-2 text-gray-500">No image uploaded yet.</p>
+              )}
+            </FormItem>
+
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Product Title" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {preview && (
-              <div className="mt-4">
-                <Image
-                  src={preview}
-                  alt="Uploaded Preview"
-                  width={70}
-                  height={70}
-                  className="object-cover aspect-square rounded-md"
-                />
-              </div>
-            )}
-          </FormItem>
 
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Product Title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="desc"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Product Description" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="desc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Input placeholder="Product Description" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Product Price"
+                      type="number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price</FormLabel>
-                <FormControl>
-                  <Input placeholder="Product Price" type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="catSlug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(value)}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.slug}>
+                            {category.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="catSlug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <Select
-                    onValueChange={(value) => field.onChange(value)}
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.slug}>
-                          {category.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {productData ? "Save Changes" : "Submit"}
-          </Button>
-        </form>
-      </Form>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {productData ? "Save Changes" : "Submit"}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };

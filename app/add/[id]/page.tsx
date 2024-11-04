@@ -31,7 +31,7 @@ const EditProductPage = ({ params }: { params: { id: string } }) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">تعديل المنتج</h2>
+    
       <AddPage productData={productData} /> {/* Passing the product data */}
     </div>
   );
