@@ -55,7 +55,8 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div className="md:hidden">
+      <div className="md:hidden  flex items-center gap-2">
+        <UserLinks />
         <Menu />
       </div>
     </div>

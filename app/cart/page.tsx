@@ -185,7 +185,7 @@ const CartPage = () => {
       setMessage("يرجى تسجيل الدخول للمتابعة.");
       setTimeout(() => {
         router.push("/sign-in");
-      }, 2000);
+      }, 1000);
       return;
     }
 
@@ -198,7 +198,7 @@ const CartPage = () => {
         setMessage("يرجى إضافة عنوان للمتابعة.");
         setTimeout(() => {
           router.push("/address");
-        }, 2000);
+        }, 1000);
         return;
       }
 

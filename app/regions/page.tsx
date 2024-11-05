@@ -17,13 +17,13 @@ type EntryType = {
 };
 
 const allDays = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
+  "الإثنين", // Monday
+  "الثلاثاء", // Tuesday
+  "الأربعاء", // Wednesday
+  "الخميس", // Thursday
+  "الجمعة", // Friday
+  "السبت", // Saturday
+  "الأحد", // Sunday
 ];
 
 const ManageLocations = () => {
@@ -51,13 +51,13 @@ const ManageLocations = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch entries");
+          throw new Error("فشل جلب الإدخالات");
         }
 
         const data = await response.json();
         setEntries(data);
       } catch (error) {
-        toast.error("Failed to load entries");
+        toast.error("فشل تحميل الإدخالات");
         console.error("Error fetching entries:", error);
       }
     };
@@ -92,14 +92,12 @@ const ManageLocations = () => {
       });
 
       if (response.status === 409) {
-        toast.error(
-          "Region with the same name and neighborhood already exists."
-        );
+        toast.error("المنطقة التي تحمل نفس الاسم والحي موجودة بالفعل.");
         return;
       }
 
       if (!response.ok) {
-        toast.error("Failed to save entry.");
+        toast.error("فشل حفظ الإدخال.");
         return;
       }
 
@@ -113,7 +111,7 @@ const ManageLocations = () => {
       setStartTime("");
       setEndTime("");
     } else {
-      toast.error("Please fill all fields and select delivery days.");
+      toast.error("برجاء ملء كافة الحقول واختيار أيام التسليم.");
     }
   };
 
@@ -150,7 +148,7 @@ const ManageLocations = () => {
       );
 
       if (!response.ok) {
-        toast.error("Failed to update region.");
+        toast.error("فشل تحديث المنطقة.");
         return;
       }
 
@@ -169,10 +167,10 @@ const ManageLocations = () => {
       setSelectedDays([]);
       setStartTime("");
       setEndTime("");
-      toast.success("Region updated successfully.");
+      toast.success("تم تحديث المنطقة بنجاح.");
     } catch (error) {
       console.error("Error updating region:", error);
-      toast.error("Error updating region.");
+      toast.error("حدث خطأ أثناء تحديث المنطقة.");
     }
   };
 
@@ -186,127 +184,135 @@ const ManageLocations = () => {
       );
 
       if (!response.ok) {
-        toast.error("Failed to delete region.");
+        toast.error("فشل حذف المنطقة.");
         return;
       }
 
       // تحديث الإدخالات بعد الحذف
       setEntries(entries.filter((entry) => entry.id !== regionId));
-      toast.success("Region deleted successfully.");
+      toast.success("تم حذف المنطقة بنجاح.");
     } catch (error) {
       console.error("Error deleting region:", error);
-      toast.error("Error deleting region.");
+      toast.error("حدث خطأ أثناء حذف المنطقة.");
     }
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold">Manage Locations</h1>
-      <Separator className="my-4" />
+    <div className="main-content flex items-center justify-center p-4 sm:p-6 lg:p-8 ">
+      <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg w-full md:w-2/3">
+        <h1 className="text-xl text-orange-400 sm:text-2xl font-bold">
+          إدارة المناطق
+        </h1>
+        <Separator className="my-4" />
 
-      {/* Region Input */}
-      <div className="flex flex-col gap-4 mb-4">
-        <Input
-          placeholder="Enter Region"
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-        />
-      </div>
-
-      {/* Neighborhood Input */}
-      <div className="flex flex-col gap-4 mb-4">
-        <Input
-          placeholder="Enter Neighborhood "
-          value={neighborhoods || ""}
-          onChange={(e) => setNeighborhoods(e.target.value || null)}
-        />
-      </div>
-
-      {/* Days of the Week Selection */}
-      <div className="flex items-center gap-4 mb-4">
-        {allDays.map((day) => (
-          <div key={day} className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={selectedDays.includes(day)}
-              onChange={(e) => handleDayChange(day, e.target.checked)}
-            />
-            <label>{day}</label>
-          </div>
-        ))}
-      </div>
-
-      {/* Delivery Time Selection */}
-      <div className="flex flex-col gap-4 mb-4">
-        <label className="text-lg font-semibold">Delivery Time:</label>
-        <div className="flex gap-4">
+        {/* Region Input */}
+        <div className="flex flex-col gap-4 mb-4 w-full md:w-1/3">
           <Input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="text-lg p-2 border border-gray-300 rounded-md"
-          />
-          <span className="text-lg font-semibold">to</span>
-          <Input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="text-lg p-2 border border-gray-300 rounded-md"
+            placeholder="أدخل المنطقة"
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            className="w-full"
           />
         </div>
-      </div>
-      <Button
-        onClick={() => {
-          if (editingRegionId) {
-            handleUpdateEntry(editingRegionId);
-          } else {
-            handleAddEntry();
-          }
-        }}
-      >
-        {editingRegionId ? "Update Entry" : "Add Entry"}
-      </Button>
 
-      {/* عرض الإدخالات في جدول */}
-      <table className="min-w-full border-collapse mt-4">
-        <thead>
-          <tr>
-            <th className="border p-2">Region</th>
-            <th className="border p-2">Neighborhood</th>
-            <th className="border p-2">Delivery Days</th>
-            <th className="border p-2">Start Time</th>
-            <th className="border p-2">End Time</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry, index) => (
-            <tr key={index} className="border">
-              <td className="border p-2">{entry.name}</td>
-              <td className="border p-2">
-                {entry.neighborhoods ? entry.neighborhoods : "جميع الأحياء"}
-              </td>
-              <td className="border p-2">
-                {Array.isArray(entry.deliveryDays)
-                  ? entry.deliveryDays.join(", ")
-                  : entry.deliveryDays}
-              </td>
-              <td className="border p-2">{entry.startTime}</td>
-              <td className="border p-2">{entry.endTime}</td>
-              <td className="border p-2 flex gap-2">
-                {/* أيقونة التعديل */}
-                <button onClick={() => handleEdit(entry)}>
-                  <FaEdit className="text-blue-600" />
-                </button>
-                {/* أيقونة الحذف */}
-                <button onClick={() => handleDelete(entry.id)}>
-                  <FaTrash className="text-red-600" />
-                </button>
-              </td>
-            </tr>
+        {/* Neighborhood Input */}
+        <div className="flex flex-col gap-4 mb-4 w-full md:w-1/3">
+          <Input
+            placeholder="أدخل الحي"
+            value={neighborhoods || ""}
+            onChange={(e) => setNeighborhoods(e.target.value || null)}
+            className="w-full"
+          />
+        </div>
+
+        {/* Days of the Week Selection */}
+        <div className="flex flex-wrap items-center gap-4 mb-4">
+          {allDays.map((day) => (
+            <div key={day} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={selectedDays.includes(day)}
+                onChange={(e) => handleDayChange(day, e.target.checked)}
+                className="mr-1"
+              />
+              <label>{day}</label>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+
+        {/* Delivery Time Selection */}
+        <div className="flex flex-col gap-4 mb-4">
+          <label className="text-lg font-semibold">موعد التسليم:</label>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Input
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="text-lg p-2 border border-gray-300 rounded-md w-full sm:w-auto"
+            />
+            <span className="text-lg font-semibold flex items-center">الى</span>
+            <Input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="text-lg p-2 border border-gray-300 rounded-md w-full sm:w-auto"
+            />
+          </div>
+        </div>
+        <Button
+          onClick={() => {
+            if (editingRegionId) {
+              handleUpdateEntry(editingRegionId);
+            } else {
+              handleAddEntry();
+            }
+          }}
+          className="w-full sm:w-auto"
+        >
+          {editingRegionId ? "تحديث الإدخال" : "إضافة إدخال"}
+        </Button>
+
+        {/* عرض الإدخالات في جدول */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full  border-collapse mt-4">
+            <thead>
+              <tr>
+                <th className="border p-2">منطقة</th>
+                <th className="border p-2">حيّ</th>
+                <th className="border p-2">أيام التسليم</th>
+                <th className="border p-2">وقت البدء</th>
+                <th className="border p-2">وقت النهاية</th>
+                <th className="border p-2">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry, index) => (
+                <tr key={index} className="border">
+                  <td className="border p-2">{entry.name}</td>
+                  <td className="border p-2">
+                    {entry.neighborhoods ? entry.neighborhoods : "جميع الأحياء"}
+                  </td>
+                  <td className="border p-2">
+                    {Array.isArray(entry.deliveryDays)
+                      ? entry.deliveryDays.join(", ")
+                      : entry.deliveryDays}
+                  </td>
+                  <td className="border p-2">{entry.startTime}</td>
+                  <td className="border p-2">{entry.endTime}</td>
+                  <td className="border p-2 flex gap-2">
+                    <button onClick={() => handleEdit(entry)}>
+                      <FaEdit className="text-blue-600 " />
+                    </button>
+                    <button onClick={() => handleDelete(entry.id)}>
+                      <FaTrash className="text-red-600" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };

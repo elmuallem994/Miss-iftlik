@@ -10,7 +10,7 @@ import {
 import { MenuIcon } from "lucide-react";
 import Link from "next/link";
 import CartIcon from "./CartIcon";
-import UserLinks from "./UserLinks";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "./ui/separator";
 
@@ -27,7 +27,7 @@ const Menu = () => {
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          className="ml-auto mr-4 bg-orange-400 text-white"
+          className="ml-auto mr-4 bg-orange-400 text-white rounded-full"
         >
           <MenuIcon className="text-white" />
         </Button>
@@ -62,8 +62,7 @@ const Menu = () => {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-8 w-full max-w-xs mx-auto mt-12">
-          <UserLinks />
+        <div className="flex flex-col items-center gap-8 w-full max-w-xs mx-auto mt-12 z-50">
           <Link href="/cart">
             <CartIcon />
           </Link>

@@ -5,31 +5,45 @@ import {
 } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/orders(.*)"]);
-const isAdminRoute = createRouteMatcher(["/add(.*)"]);
+// الصفحات المحمية التي تحتاج تسجيل دخول
+const isProtectedRoute = createRouteMatcher(["/orders(.*)", "/address(.*)"]);
+
+// الصفحات الخاصة بالمشرف والتي تتطلب دور "admin"
+const isAdminRoute = createRouteMatcher([
+  "/admin",
+  "/add",
+  "/addCategoryForm(.*)",
+  "/regions(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, redirectToSignIn } = await auth();
 
-  // التحقق من تسجيل الدخول
-  if (!userId && (isProtectedRoute(req) || isAdminRoute(req))) {
-    return redirectToSignIn(); // إعادة التوجيه إلى صفحة تسجيل الدخول
+  // التحقق من صفحات محمية تتطلب تسجيل الدخول
+  if (isProtectedRoute(req)) {
+    if (!userId) {
+      return redirectToSignIn(); // إعادة التوجيه إلى صفحة تسجيل الدخول
+    }
   }
 
-  // التحقق من أن userId ليس null
-  if (!userId) {
-    const url = new URL("/", req.url);
-    return NextResponse.redirect(url);
+  // التحقق من صفحات المشرف التي تتطلب دور "admin"
+  if (isAdminRoute(req)) {
+    if (!userId) {
+      return redirectToSignIn(); // إعادة التوجيه إلى صفحة تسجيل الدخول إذا لم يكن مسجل دخول
+    }
+
+    // جلب بيانات المستخدم للتحقق من الدور
+    const user = await clerkClient.users.getUser(userId);
+
+    // التحقق من دور "admin"
+    if (user?.publicMetadata?.role !== "admin") {
+      const url = new URL("/", req.url); // إعادة التوجيه إلى الصفحة الرئيسية إذا لم يكن المشرف
+      return NextResponse.redirect(url);
+    }
   }
 
-  // جلب بيانات المستخدم فقط إذا تم الوصول إلى صفحة محمية
-  const user = await clerkClient.users.getUser(userId);
-
-  // التحقق من دور "admin"
-  if (isAdminRoute(req) && user?.publicMetadata?.role !== "admin") {
-    const url = new URL("/", req.url); // إعادة التوجيه إلى الصفحة الرئيسية
-    return NextResponse.redirect(url);
-  }
+  // السماح بالوصول للصفحات غير المحمية
+  return NextResponse.next();
 });
 
 export const config = {

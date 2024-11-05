@@ -14,7 +14,7 @@ const EditCategoryPage = ({ params }: { params: { id: string } }) => {
           `http://localhost:3000/api/categories/${params.id}`
         );
         if (!res.ok) {
-          throw new Error("Failed to fetch category data!");
+          throw new Error("فشل جلب بيانات الفئة!");
         }
         const data = await res.json();
         setCategoryData(data);

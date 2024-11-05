@@ -40,13 +40,13 @@ type AddPageProps = {
 };
 
 const productSchema = z.object({
-  title: z.string().min(3, { message: "Title is required" }),
-  desc: z.string().min(5, { message: "Description is required" }),
+  title: z.string().min(3, { message: "العنوان مطلوب" }),
+  desc: z.string().min(5, { message: "الوصف مطلوب" }),
   price: z.preprocess(
     (value) => parseFloat(z.string().parse(value)),
-    z.number().positive({ message: "Price must be a positive number" })
+    z.number().positive({ message: "يجب أن يكون السعر رقمًا موجبًا" })
   ),
-  catSlug: z.string().min(3, { message: "Category is required" }),
+  catSlug: z.string().min(3, { message: "الفئة مطلوبة" }),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -57,6 +57,7 @@ const AddPage = ({ productData }: AddPageProps) => {
   const [preview, setPreview] = useState<string | null>(
     productData?.img || null
   );
+  const [imageError, setImageError] = useState(false); // حالة لتتبع خطأ الصورة
 
   const [categories, setCategories] = useState<
     { id: string; title: string; slug: string }[]
@@ -80,13 +81,13 @@ const AddPage = ({ productData }: AddPageProps) => {
       try {
         const res = await fetch("http://localhost:3000/api/categories");
         if (!res.ok) {
-          throw new Error("Failed to fetch categories");
+          throw new Error("فشل جلب الفئات");
         }
         const data = await res.json();
         setCategories(data);
       } catch (error) {
         console.error(error);
-        toast.error("Failed to fetch categories.");
+        toast.error("فشل جلب الفئات.");
       }
     };
 
@@ -122,9 +123,11 @@ const AddPage = ({ productData }: AddPageProps) => {
       setLoading(true); // Start loading
       // If there's no image file and it's a new product, show an error message
       if (!file && !productData?.img) {
-        toast.error("Please upload an image for the product.");
+        toast.error("يرجى تحميل صورة للمنتج.");
         return; // Stop execution if there's no image
       }
+
+      setImageError(false); // إعادة تعيين حالة الخطأ إذا تم تحميل صورة
 
       let imgUrl = productData?.img || ""; // Use existing image URL if no new image is uploaded
 
@@ -148,17 +151,15 @@ const AddPage = ({ productData }: AddPageProps) => {
 
       if (res.ok) {
         toast.success(
-          productData
-            ? "Product updated successfully!"
-            : "Product added successfully!"
+          productData ? "تم تحديث المنتج بنجاح" : "تمت إضافة المنتج بنجاح"
         );
         router.push("/menu");
       } else {
-        toast.error("Failed to save product.");
+        toast.error("فشل في حفظ المنتج.");
       }
     } catch (err) {
       console.log(err);
-      toast.error("An error occurred while saving the product.");
+      toast.error("حدث خطأ أثناء حفظ المنتج.");
     } finally {
       setLoading(false); // Stop loading
     }
@@ -166,22 +167,23 @@ const AddPage = ({ productData }: AddPageProps) => {
 
   return (
     <div className="main-content p-4 lg:px-20 xl:px-40 h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex items-center justify-center">
-      <div className="bg-white p-8  rounded-lg shadow-lg  w-full max-w-3xl">
+      <div className="bg-white p-4 md:p-8 rounded-lg shadow-lg w-full max-w-3xl">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4 w-full"
           >
-            <h1 className="text-3xl pb-7 text-orange-300 font-bold">
+            <h1 className="text-2xl md:text-3xl pb-7 text-orange-300 font-bold text-center">
               {productData ? "تعديل المنتج" : "أضف منتج جديد"}
             </h1>
             <FormItem>
               <FormLabel
                 htmlFor="file"
-                className="cursor-pointer text-red-500 border p-2 "
+                className="cursor-pointer text-red-500 border p-2"
               >
-                Upload Image
+                تحميل الصورة{" "}
               </FormLabel>
+
               <input
                 type="file"
                 onChange={handleChangeImg}
@@ -197,12 +199,15 @@ const AddPage = ({ productData }: AddPageProps) => {
                     height={70}
                     className="object-cover aspect-square rounded-md"
                   />
-                  <p className="mt-2 text-green-500">
-                    Image uploaded successfully!
-                  </p>
+                  <p className="mt-2 text-green-500">تم تحميل الصورة بنجاح!</p>
                 </div>
               ) : (
-                <p className="mt-2 text-gray-500">No image uploaded yet.</p>
+                <p className="mt-2 text-red-500">لم يتم تحميل الصورة بعد.</p>
+              )}
+              {imageError && (
+                <FormMessage className="text-red-500">
+                  الصورة مطلوبة.
+                </FormMessage>
               )}
             </FormItem>
 
@@ -211,9 +216,13 @@ const AddPage = ({ productData }: AddPageProps) => {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>العنوان</FormLabel>
                   <FormControl>
-                    <Input placeholder="Product Title" {...field} />
+                    <Input
+                      placeholder="عنوان المنتج"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -225,9 +234,13 @@ const AddPage = ({ productData }: AddPageProps) => {
               name="desc"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>الوصف</FormLabel>
                   <FormControl>
-                    <Input placeholder="Product Description" {...field} />
+                    <Input
+                      placeholder="وصف المنتج"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -239,12 +252,13 @@ const AddPage = ({ productData }: AddPageProps) => {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price</FormLabel>
+                  <FormLabel>السعر</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Product Price"
+                      placeholder="سعر المنتج"
                       type="number"
                       {...field}
+                      className="w-full"
                     />
                   </FormControl>
                   <FormMessage />
@@ -257,14 +271,14 @@ const AddPage = ({ productData }: AddPageProps) => {
               name="catSlug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel>الصنف</FormLabel>
                   <FormControl>
                     <Select
                       onValueChange={(value) => field.onChange(value)}
                       defaultValue={field.value}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Category" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="حدد الفئة" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((category) => (
@@ -280,8 +294,12 @@ const AddPage = ({ productData }: AddPageProps) => {
               )}
             />
 
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {productData ? "Save Changes" : "Submit"}
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting}
+              className="w-full"
+            >
+              {productData ? "حفظ التغييرات" : "إرسال"}
             </Button>
           </form>
         </Form>

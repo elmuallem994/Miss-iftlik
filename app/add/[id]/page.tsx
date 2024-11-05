@@ -13,7 +13,7 @@ const EditProductPage = ({ params }: { params: { id: string } }) => {
           `http://localhost:3000/api/products/${params.id}`
         );
         if (!res.ok) {
-          throw new Error("Failed to fetch product data!");
+          throw new Error("فشل جلب بيانات المنتج!");
         }
         const data = await res.json();
         setProductData(data);
@@ -31,7 +31,6 @@ const EditProductPage = ({ params }: { params: { id: string } }) => {
 
   return (
     <div>
-    
       <AddPage productData={productData} /> {/* Passing the product data */}
     </div>
   );

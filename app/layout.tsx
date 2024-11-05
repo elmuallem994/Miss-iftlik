@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import QueryProvider from "./components/QueryProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { trTR } from "@clerk/localizations";
 
 import "./globals.css";
 
@@ -21,9 +22,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={trTR}>
       <QueryProvider>
-        <html lang="en">
+        <html lang="tr">
           {/** bg-primary-black text-secondary-white */}
           <body className="bg-primary-black antialiased">
             <div className="main-container">

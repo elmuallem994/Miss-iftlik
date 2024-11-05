@@ -14,10 +14,10 @@ const UserLinks = ({ onClick }: { onClick?: () => void }) => {
           <Link
             href="/orders"
             onClick={onClick}
-            className="mr-4 flex items-center text-white bg-orange-400 rounded-2xl py-1 px-3"
+            className="mr-4 flex items-center text-white bg-orange-400 rounded-2xl py-2 md:py-1 px-3"
           >
             <ReceiptText className="text-white icon-bell-ring" size={20} />
-            <span className="ml-2  inline">Siparişlerim</span>
+            <span className="hidden  ml-2  md:inline">Siparişlerim</span>
           </Link>
 
           {/* زر UserButton لعرض معلومات المستخدم وزر تسجيل الخروج */}
@@ -30,7 +30,11 @@ const UserLinks = ({ onClick }: { onClick?: () => void }) => {
         {/* زر تسجيل الدخول مع نافذة منبثقة */}
         <SignInButton mode="modal">
           <span style={{ cursor: "pointer" }} onClick={onClick}>
-            <User className="text-white" size={20} /> {/* استخدام الأيقونة */}
+            <User
+              className="text-white bg-orange-400 rounded-full p-2"
+              size={35}
+            />{" "}
+            {/* استخدام الأيقونة */}
           </span>
         </SignInButton>
       </SignedOut>
