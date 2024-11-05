@@ -12,27 +12,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogDescription,
-  AlertDialogAction,
   AlertDialogCancel,
 } from "@/app/components/ui/alert-dialog";
 import { format, addDays, compareAsc, getDay } from "date-fns";
+import { tr } from "date-fns/locale"; // استيراد اللغة التركية
 import LoadingSpinner from "@/app/components/ui/loadingSpinner";
 import { Pencil } from "lucide-react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css"; // تأكد من استيراد الأنماط
+import { Button } from "../components/ui/button";
 
 const CartPage = () => {
   const [recipientName, setRecipientName] = useState<string>("");
   const [recipientPhone, setRecipientPhone] = useState<string>("");
   const [message, setMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [deliveryDays, setDeliveryDays] = useState<string[]>([]);
   const [deliveryDates, setDeliveryDates] = useState<Date[]>([]);
   const [regionName, setRegionName] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<string | null>(null); // حالة لتخزين وقت البدء
   const [endTime, setEndTime] = useState<string | null>(null); // حالة لتخزين وقت الانتهاء
   const [fullAddress, setFullAddress] = useState<string | null>(null);
-
+  const [isSubmitting, setIsSubmitting] = useState(false); // حالة جديدة لتعطيل الزر أثناء الإرسال
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { products, totalItems, totalPrice, removeFromCart } = useCartStore();
+
   const { isSignedIn, user } = useUser();
   const setLoading = useLoadingStore((state) => state.setLoading);
   const isLoading = useLoadingStore((state) => state.isLoading);
@@ -70,16 +75,18 @@ const CartPage = () => {
       router.push("/sign-in");
     } else {
       try {
-        if (!selectedDay) {
-          throw new Error("Please select a delivery day.");
-        }
+        setLoading(true); // تشغيل حالة التحميل عند بدء الدفع
 
-        setLoading(true);
+        if (!selectedDay || !recipientName || !recipientPhone) {
+          setErrorMessage("Lütfen tüm zorunlu alanları doldurun.");
+          setLoading(false); // إيقاف التحميل عند حدوث خطأ في المدخلات
+          return;
+        }
 
         const regionData = await fetchRegionId();
 
         if (!regionData || !regionData.regionId) {
-          throw new Error("Region ID is missing.");
+          throw new Error("Bölge kimliği eksik.");
         }
 
         const regionId = regionData.regionId;
@@ -144,25 +151,29 @@ const CartPage = () => {
       } catch (err) {
         console.error("Something went wrong during the checkout process:", err);
       } finally {
-        setLoading(false);
+        setLoading(false); // إيقاف حالة التحميل عند انتهاء الدفع
       }
     }
   };
 
   const fetchRegionId = async () => {
     try {
+      setLoading(true); // تشغيل حالة التحميل عند بدء الجلب
+
       const addressResponse = await fetch(
         `http://localhost:3000/api/address/${user?.id}`
       );
       if (!addressResponse.ok) {
-        throw new Error("فشل في جلب عنوان المستخدم");
+        throw new Error("  Kullanıcı adresi alınamadı");
       }
 
       const addressData = await addressResponse.json();
       console.log("Address Data:", addressData);
 
       if (!addressData.regionId) {
-        throw new Error("لم يتم العثور على معرف المنطقة لعنوان المستخدم");
+        throw new Error(
+          "Kullanıcının adresine ilişkin alan tanımlayıcı bulunamadı"
+        );
       }
 
       return {
@@ -177,12 +188,14 @@ const CartPage = () => {
       console.log(error);
       setError(error.message);
       return null;
+    } finally {
+      setLoading(false); // إيقاف حالة التحميل عند انتهاء الجلب
     }
   };
 
   const fetchDeliveryDays = async () => {
     if (!isSignedIn) {
-      setMessage("يرجى تسجيل الدخول للمتابعة.");
+      setMessage("Devam etmek için lütfen giriş yapın.");
       setTimeout(() => {
         router.push("/sign-in");
       }, 1000);
@@ -190,12 +203,12 @@ const CartPage = () => {
     }
 
     try {
-      setLoading(true);
+      setLoading(true); // تشغيل حالة التحميل عند بدء الجلب
       setError(null);
 
       const addressData = await fetchRegionId();
       if (!addressData) {
-        setMessage("يرجى إضافة عنوان للمتابعة.");
+        setMessage("Devam etmek için lütfen bir adres ekleyin.");
         setTimeout(() => {
           router.push("/address");
         }, 1000);
@@ -209,7 +222,7 @@ const CartPage = () => {
         `http://localhost:3000/api/regions/${regionId}`
       );
       if (!response.ok) {
-        throw new Error("Failed to fetch delivery days");
+        throw new Error("Teslimat günleri getirilemedi");
       }
 
       const data = await response.json();
@@ -224,7 +237,7 @@ const CartPage = () => {
       const sortedDates = calculatedDates.sort(compareAsc);
       setDeliveryDates(sortedDates);
     } catch (error) {
-      setError(error.message || "حدث خطأ أثناء جلب أيام التوصيل");
+      setError(error.message || "Teslimat günleri alınırken bir hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -263,12 +276,12 @@ const CartPage = () => {
 
       <div className="h-1/2 p-4 bg-orange-50 flex flex-col gap-4 justify-center lg:h-full lg:w-1/3 2xl:w-1/2 lg:px-20 xl:px-40 2xl:text-xl 2xl:gap-6">
         <div className="flex justify-between">
-          <span>Subtotal ({totalItems} items)</span>
+          <span>Ara toplam ({totalItems} öğeler)</span>
           <span>{totalPrice} TL</span>
         </div>
         <div className="flex justify-between">
           <span>Teslimat Ucreti</span>
-          <span className="text-green-500">FREE!</span>
+          <span className="text-green-500">ucretsız!</span>
         </div>
         <hr className="my-2" />
         <div className="flex justify-between">
@@ -287,66 +300,84 @@ const CartPage = () => {
 
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>اختر يوم التسليم</AlertDialogTitle>
+              <AlertDialogTitle className="text-orange-300 font-bold text-3xl pb-7">
+                {" "}
+                Teslimat gününü seçin{" "}
+              </AlertDialogTitle>
               <AlertDialogDescription className="space-y-4 mt-4">
                 {regionName && (
-                  <p className="text-lg font-semibold">المنطقة: {regionName}</p>
+                  <p className="text-xl font-semibold text-red-400">
+                    Bölge : {regionName}
+                  </p>
                 )}
                 {startTime && endTime && (
-                  <p className="text-sm text-gray-600">
-                    وقت التسليم: {startTime} - {endTime}
+                  <p className="text-sm text-green-600 font-bold">
+                    Teslimat süresi : {startTime} arası {endTime}
                   </p>
                 )}
                 {fullAddress ? (
                   <div className="flex items-start justify-between space-y-2">
-                    <p className="text-gray-800 border border-gray-300 rounded-lg p-4 shadow-md bg-gray-50 leading-relaxed">
+                    <p className="text-gray-800  rounded-lg p-4 shadow-md bg-orange-100 leading-relaxed">
                       {fullAddress}
                     </p>
 
                     <button
-                      className="bg-gray-200 p-1 rounded-md ml-4 hover:bg-gray-300 transition-colors"
+                      className="bg-orange-400 p-1 rounded-md ml-4 hover:bg-gray-300 transition-colors"
                       onClick={() => router.push("/address")}
                     >
-                      <Pencil className="w-5 h-5 text-gray-600" />
+                      <Pencil className="w-5 h-5 text-white" />
                     </button>
                   </div>
                 ) : (
                   <p className="text-red-500">
-                    العنوان: لم يتم العثور على عنوان كامل
+                    Adres: Tam adresiniz bulunamadı
                   </p>
                 )}
-                <p className="text-sm text-gray-600 pt-3 ">
-                  اختر يوماً مناسباً من الأيام المتاحة للتسليم.
-                </p>
-                <div className="space-y-3">
+
+                <div className="space-y-3 text-left">
+                  {" "}
+                  {/* إضافة text-left هنا */}
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
-                      اسم المستلم
+                      Alıcının adı <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      className="border border-gray-300 rounded-lg w-full p-2"
-                      placeholder="أدخل اسم المستلم"
+                      className="border border-gray-300 rounded-lg w-[82%] p-2 sm:w-[65%]" // استخدم sm:w-[65%] للشاشات الكبيرة
+                      placeholder="Alıcının adını girin"
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
+                      required
                     />
                   </div>
                   <div>
                     <label className="block text-gray-700 text-sm font-bold mb-2">
-                      رقم المستلم
+                      Alıcının telefon numarası{" "}
+                      <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="tel"
-                      className="border border-gray-300 rounded-lg w-full p-2"
-                      placeholder="أدخل رقم المستلم"
+                    <PhoneInput
+                      country={"tr"}
                       value={recipientPhone}
-                      onChange={(e) => setRecipientPhone(e.target.value)}
+                      onChange={(phone) => setRecipientPhone(phone)}
+                      inputProps={{
+                        name: "phone",
+                        required: true,
+                        autoFocus: true,
+                      }}
+                      containerClass="w-full"
+                      inputClass="border border-gray-300 rounded-lg w-full p-2"
+                      buttonClass="bg-transparent"
                     />
                   </div>
+                  {errorMessage && (
+                    <p className="text-red-500">{errorMessage}</p>
+                  )}
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-
+            <p className="text-sm text-green-600 pt-3 ">
+              Teslimat için uygun olan günlerden uygun bir gün seçin.
+            </p>
             {isLoading ? (
               <div className="flex justify-center items-center p-4 ">
                 <LoadingSpinner />
@@ -360,7 +391,7 @@ const CartPage = () => {
                   return (
                     <div
                       key={index}
-                      className={`flex items-center gap-3  my-4  ${
+                      className={`flex items-center gap-4  my-4  ${
                         isToday ? "bg-red-100 text-red-600" : ""
                       }`}
                     >
@@ -378,7 +409,7 @@ const CartPage = () => {
                             setError(null);
                           } else {
                             setError(
-                              "لا يمكنك تحديد اليوم الحالي كموعد للتسليم"
+                              "Geçerli günü teslimat tarihi olarak ayarlayamazsınız."
                             );
                           }
                         }}
@@ -393,9 +424,10 @@ const CartPage = () => {
                             Bugün
                           </span>
                         )}
-                        {`${format(date, "EEEE")} - ${format(
+                        {`${format(date, "EEEE", { locale: tr })} - ${format(
                           date,
-                          "MMMM d, yyyy"
+                          "d MMMM yyyy",
+                          { locale: tr }
                         )}`}
                         {isToday && (
                           <span className="text-xs text-red-600 whitespace-normal break-words">
@@ -408,19 +440,45 @@ const CartPage = () => {
                 })}
               </div>
             ) : (
-              <p>لم يتم العثور على أيام متاحة</p>
+              <p> Uygun gün bulunamadı</p>
             )}
 
             {error && <p className="text-red-500">{error}</p>}
 
-            <div className="flex justify-end gap-2 mt-4">
-              <AlertDialogCancel>إلغاء</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleCheckout}
-                disabled={!selectedDay}
+            <div className="flex  justify-end gap-2 mt-4">
+              <AlertDialogCancel>iptal</AlertDialogCancel>
+              <Button
+                onClick={async () => {
+                  // تحقق من تعبئة الحقول
+                  if (!selectedDay || !recipientName || !recipientPhone) {
+                    setErrorMessage("Lütfen tüm zorunlu alanları doldurun.");
+                    return; // لا تغلق النافذة إذا كانت الحقول غير مكتملة
+                  }
+
+                  setErrorMessage(""); // مسح رسالة الخطأ
+
+                  // تعطيل الزر أثناء الإرسال
+                  setIsSubmitting(true);
+
+                  try {
+                    await handleCheckout(); // تنفيذ عملية الدفع إذا كانت الحقول مكتملة
+
+                    // أو يمكنك توجيه المستخدم إلى صفحة التأكيد أو الشكر
+                    router.push("/success");
+                  } catch (error) {
+                    console.error("Error during checkout:", error);
+                    setIsSubmitting(false); // في حال حدوث خطأ، إعادة تمكين الزر
+                  }
+                }}
+                className={`bg-orange-500 text-white p-2 rounded-md mt-2 md:mt-0 ${
+                  !selectedDay || isSubmitting
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={!selectedDay || isSubmitting} // تعطيل الزر أثناء الإرسال
               >
-                تأكيد
-              </AlertDialogAction>
+                {isSubmitting ? "İşleniyor..." : "Sipariş Onayla"}
+              </Button>
             </div>
           </AlertDialogContent>
         </AlertDialog>
