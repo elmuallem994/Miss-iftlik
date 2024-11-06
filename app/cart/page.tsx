@@ -21,6 +21,7 @@ import { Pencil } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css"; // تأكد من استيراد الأنماط
 import { Button } from "../components/ui/button";
+import { FaTrash } from "react-icons/fa";
 
 const CartPage = () => {
   const [recipientName, setRecipientName] = useState<string>("");
@@ -244,55 +245,93 @@ const CartPage = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-6rem)] md:h-[calc(100vh-9rem)] flex flex-col text-orange-500 lg:flex-row">
+    <div className="min-h-screen main-content flex flex-col lg:flex-row text-orange-500 bg-gray-100">
       {message && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-auto bg-red-500 text-white text-center p-8 z-50 rounded-md">
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-auto bg-red-500 text-white text-center p-8 z-50 rounded-md shadow-lg">
           {message}
         </div>
       )}
 
-      <div className="h-1/2 p-4 flex flex-col justify-center overflow-scroll lg:h-full lg:w-2/3 2xl:w-1/2 lg:px-20 xl:px-40">
+      {/* قسم المنتجات */}
+
+      <div className="w-full lg:w-2/3 p-6 bg-primary-black shadow-md lg:shadow-none border border-gray-700 ">
+        <h1 className="block sm:hidden  glowing-text text-center text-3xl   pb-4 text-white font-bold mb-12">
+          Sepetim
+        </h1>
         {products.map((item) => (
-          <div className="flex items-center justify-between mb-4" key={item.id}>
+          <div
+            key={item.id}
+            className="flex items-center justify-between mb-6 border-b border-gray-600 pb-4 px-0 md:px-10"
+          >
             {item.img && (
-              <Image src={item.img} alt="" width={100} height={100} />
+              <Image
+                src={item.img}
+                alt=""
+                width={80}
+                height={80}
+                className="rounded-md"
+              />
             )}
-            <div className="">
-              <h1 className="uppercase text-xl font-bold">
-                {item.title} {item.desc} x{item.quantity}
+            <div className="flex-1 px-4 text-gray-300 space-y-1">
+              <h1 className="uppercase text-lg font-bold text-orange-400">
+                {item.title}
               </h1>
-              <span>{item.optionTitle}</span>
+              <p className="text-gray-200 text-[13px] md:text-sm max-w-[150px]  md:max-w-60">
+                {item.desc}
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="bg-orange-600 text-white rounded-full px-2 py-1 text-xs font-bold">
+                  Adet : {item.quantity}
+                </span>
+                <span className="text-sm text-gray-400">
+                  {item.optionTitle}
+                </span>
+              </div>
             </div>
-            <h2 className="font-bold">{item.price} TL</h2>
-            <span
-              className="cursor-pointer"
-              onClick={() => removeFromCart(item)}
-            >
-              X
-            </span>
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-orange-300">
+                {item.price} TL
+              </h2>
+              <span
+                className="cursor-pointer text-red-500 hover:text-red-700"
+                onClick={() => removeFromCart(item)}
+              >
+                <FaTrash size={20} /> {/* أيقونة سلة الحذف */}
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="h-1/2 p-4 bg-orange-50 flex flex-col gap-4 justify-center lg:h-full lg:w-1/3 2xl:w-1/2 lg:px-20 xl:px-40 2xl:text-xl 2xl:gap-6">
-        <div className="flex justify-between">
+      {/* قسم ملخص السلة */}
+      <div className="w-full lg:w-1/3 p-6 bg-primary-black flex flex-col gap-6 shadow-md mt-4 md:mt-0 lg:ml-4">
+        <div className="text-2xl font-semibold text-orange-400 mb-4">
+          Sipariş Özeti
+        </div>
+
+        <div className="flex justify-between items-center border-b border-gray-700 pb-4 text-gray-200">
           <span>Ara toplam ({totalItems} öğeler)</span>
-          <span>{totalPrice} TL</span>
+          <span className="font-bold text-lg text-green-500">
+            {totalPrice} TL
+          </span>
         </div>
-        <div className="flex justify-between">
-          <span>Teslimat Ucreti</span>
-          <span className="text-green-500">ucretsız!</span>
+
+        <div className="flex justify-between items-center border-b border-gray-700 pb-4 text-gray-200">
+          <span>Teslimat Ücreti</span>
+          <span className="text-green-500 font-semibold">Ücretsiz</span>
         </div>
-        <hr className="my-2" />
-        <div className="flex justify-between">
-          <span>TOPLAM (KDV DAHİL)</span>
-          <span className="font-bold">{totalPrice} TL</span>
+
+        <div className="flex justify-between items-center text-xl font-bold text-gray-200">
+          <span>TOPLAM </span>
+          <span className=" text-xl font-bold text-green-500">
+            {totalPrice} TL
+          </span>
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <button
               onClick={fetchDeliveryDays}
-              className="bg-orange-500 text-white p-3 rounded-md w-1/2 self-end mt-4"
+              className="bg-orange-500 text-white py-3 rounded-md w-full text-center font-semibold hover:bg-orange-600 transition duration-300"
             >
               DEVAM ET
             </button>
