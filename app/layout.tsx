@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import LoadingHandler from "@/app/components/ui/loadingHandler";
 import Notification from "./components/Notification";
 import Navbar from "./components/Navbar";
@@ -8,7 +9,7 @@ import QueryProvider from "./components/QueryProvider";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { trTR } from "@clerk/localizations";
-
+import OrderStatusBar from "@/components/OrderStatusBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,10 +27,11 @@ export default function RootLayout({
       <QueryProvider>
         <html lang="tr">
           {/** bg-primary-black text-secondary-white */}
-          <body className="bg-primary-black antialiased">
+          <body className="bg-primary-black antialiased ">
             <div className="main-container">
               <Notification />
               <Navbar />
+              <OrderStatusBar />
               <LoadingHandler />
               <div className="content">{children}</div>
               <Footer className="footer" />

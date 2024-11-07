@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCartStore, useLoadingStore } from "@/utils/store";
+import { useCartStore, useLoadingStore, useOrderStore } from "@/utils/store";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -38,6 +38,8 @@ const CartPage = () => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { products, totalItems, totalPrice, removeFromCart } = useCartStore();
+
+  const setOrderId = useOrderStore((state) => state.setOrderId); // استدعاء setOrderId من Zustand
 
   const { isSignedIn, user } = useUser();
   const setLoading = useLoadingStore((state) => state.setLoading);
@@ -142,12 +144,16 @@ const CartPage = () => {
           }),
         });
 
+        const responseData = await res.json();
         if (res.ok) {
+          const orderId = responseData.orderId; // استخراج orderId من الاستجابة
           useCartStore.getState().clearCart();
-          router.push("/success");
+
+          setOrderId(orderId); // تحديث الحالة العامة باستخدام setOrderId من Zustand
+
+          return orderId;
         } else {
-          const errorData = await res.json();
-          console.error("Error occurred during checkout:", errorData);
+          console.error("Error occurred during checkout:", responseData);
         }
       } catch (err) {
         console.error("Something went wrong during the checkout process:", err);
@@ -500,10 +506,11 @@ const CartPage = () => {
                   setIsSubmitting(true);
 
                   try {
-                    await handleCheckout(); // تنفيذ عملية الدفع إذا كانت الحقول مكتملة
+                    const orderId = await handleCheckout(); // تنفيذ عملية الدفع والحصول على orderId
 
-                    // أو يمكنك توجيه المستخدم إلى صفحة التأكيد أو الشكر
-                    router.push("/success");
+                    if (orderId) {
+                      router.push(`/order-details/${orderId}`); // توجيه المستخدم إلى صفحة تفاصيل الطلب باستخدام orderId
+                    }
                   } catch (error) {
                     console.error("Error during checkout:", error);
                     setIsSubmitting(false); // في حال حدوث خطأ، إعادة تمكين الزر

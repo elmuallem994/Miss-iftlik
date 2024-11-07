@@ -2,6 +2,11 @@ import { ActionTypes, CartType } from "@/app/types/types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+interface OrderStore {
+  orderId: string | null;
+  setOrderId: (id: string) => void;
+}
+
 type CartItemType = {
   id: string;
   title: string;
@@ -17,6 +22,18 @@ const INITIAL_STATE = {
   totalItems: 0,
   totalPrice: 0,
 };
+
+export const useOrderStore = create<OrderStore>()(
+  persist(
+    (set) => ({
+      orderId: null,
+      setOrderId: (id: string) => set({ orderId: id }),
+    }),
+    {
+      name: "order-storage", // اسم المفتاح في localStorage
+    }
+  )
+);
 
 export const useCartStore = create(
   persist<CartType & ActionTypes>(

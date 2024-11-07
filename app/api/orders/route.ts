@@ -1,3 +1,5 @@
+// app/api/orders/route.ts
+
 import prisma from "@/utils/connect";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -109,7 +111,10 @@ export const POST = async (req: NextRequest) => {
     // حفظ السجلات في جدول OrderItems
     await prisma.orderItem.createMany({ data: orderItems });
 
-    return new NextResponse(JSON.stringify(order), { status: 201 });
+    // إرجاع orderId كجزء من الاستجابة بعد إنشاء الطلب بنجاح
+    return new NextResponse(JSON.stringify({ orderId: order.id }), {
+      status: 201,
+    });
   } catch (err) {
     console.log("Error:", err); // طباعة تفاصيل الخطأ في الكونسول
     return new NextResponse(

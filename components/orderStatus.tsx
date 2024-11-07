@@ -21,11 +21,11 @@ const OrderStatus: React.FC<StatusProps> = ({ status }) => {
   return (
     <div className="flex justify-between items-center w-full relative">
       {statusList.map((item, index) => (
-        <div key={index} className="relative flex flex-col items-center">
+        <div key={index} className="relative  flex flex-col items-center">
           {/* إضافة الخط الواصل */}
           {index < statusList.length - 1 && (
             <div
-              className={`absolute flex top-[30%] left-6 w-14 md:w-20 h-1 ${
+              className={`absolute flex top-[30%] left-6 w-16 md:w-20 h-1 ${
                 index < statusIndex ? "bg-green-500" : "bg-gray-300"
               }`}
             ></div>
