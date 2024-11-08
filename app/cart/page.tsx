@@ -39,7 +39,7 @@ const CartPage = () => {
   const [error, setError] = useState<string | null>(null);
   const { products, totalItems, totalPrice, removeFromCart } = useCartStore();
 
-  const setOrderId = useOrderStore((state) => state.setOrderId); // استدعاء setOrderId من Zustand
+  const addOrderId = useOrderStore((state) => state.addOrderId);
 
   const { isSignedIn, user } = useUser();
   const setLoading = useLoadingStore((state) => state.setLoading);
@@ -149,7 +149,7 @@ const CartPage = () => {
           const orderId = responseData.orderId; // استخراج orderId من الاستجابة
           useCartStore.getState().clearCart();
 
-          setOrderId(orderId); // تحديث الحالة العامة باستخدام setOrderId من Zustand
+          addOrderId(orderId); // تحديث الحالة العامة بإضافة معرف الطلب إلى القائمة
 
           return orderId;
         } else {

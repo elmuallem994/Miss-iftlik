@@ -39,7 +39,7 @@ const OrderDetails = ({ params }: { params: { orderId: string } }) => {
   if (!orderDetails) return <p>لم يتم العثور على الطلب.</p>;
 
   return (
-    <div className="main-content p-6 max-w-2xl mx-auto bg-white shadow-lg rounded-lg">
+    <div className="main-content p-6 max-w-2xl mx-auto mb-16 bg-white shadow-lg rounded-lg">
       {/* العنوان الرئيسي مع خلفية الخريطة وصورة الشركة */}
       <div className="relative bg-gray-200 rounded-xl w-full h-32 overflow-hidden shadow-lg mb-6">
         {/* الخلفية ذات طابع الخريطة */}
@@ -67,8 +67,11 @@ const OrderDetails = ({ params }: { params: { orderId: string } }) => {
 
       {/* الرسالة الأساسية */}
       <p className="text-gray-600 mb-6">
-        {orderDetails.recipientInfo} siparişinizi onayladı, Siparişiniz,
-        belirttiğiniz tarihte teslim edilmek üzere hazırlanacaktır.
+        <span className="font-semibold text-orange-600">
+          {orderDetails.recipientInfo}
+        </span>{" "}
+        siparişinizi onayladı. Siparişiniz, belirttiğiniz tarihte teslim edilmek
+        üzere hazırlanacaktır.
       </p>
 
       {/* الحالة */}
@@ -89,31 +92,81 @@ const OrderDetails = ({ params }: { params: { orderId: string } }) => {
 
       {/* تفاصيل الطلب */}
       <div className="bg-gray-50 p-4 rounded-lg shadow-inner mb-6">
-        <p className="text-gray-800 font-semibold mb-2">
-          <strong>Sipariş Numarası:</strong> {orderDetails.id}
+        <p className="text-gray-500 font-semibold mb-2 flex items-center gap-2">
+          <strong className="text-orange-500">Sipariş Numarası:</strong>
+          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm">
+            #{orderDetails.id.replace(/\D/g, "").slice(-4)}
+          </span>
         </p>
-        <p className="text-gray-800 font-semibold mb-2">
-          <strong>Sipariş Tarihi:</strong>{" "}
-          {new Date(orderDetails.createdAt).toLocaleDateString("tr-TR", {
-            timeZone: "Asia/Istanbul",
-          })}
+
+        <p className="text-gray-500 font-semibold mb-2">
+          <strong className="text-orange-500">Sipariş Tarihi:</strong>
+          <span className="ml-2">
+            {new Date(orderDetails.createdAt).toLocaleDateString("tr-TR", {
+              timeZone: "Asia/Istanbul",
+            })}
+          </span>
+        </p>
+
+        <p className="text-gray-500 font-semibold mb-2">
+          <strong className="text-orange-500">Bölge:</strong>
+          <span className="ml-2">
+            {orderDetails.orderItems[0]?.regionName || "Bilgi Yok"} -
+            {orderDetails.orderItems[0]?.neighborhoods || "Bilgi Yok"}
+          </span>
+        </p>
+
+        <p className="text-gray-500 font-semibold mb-2">
+          <strong className="text-orange-500 text-lg  ">Teslim Tarihi:</strong>
+          <span className="ml-2">
+            {orderDetails.deliveryDate
+              ? new Date(orderDetails.deliveryDate).toLocaleDateString(
+                  "tr-TR",
+                  {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                    timeZone: "Asia/Istanbul",
+                  }
+                )
+              : "Teslim tarihi yok"}
+          </span>
+        </p>
+
+        <p className="text-gray-500 font-bold mb-2">
+          <strong className="text-orange-500 ">Zaman :</strong>
+          <span className="ml-2">
+            {orderDetails.orderItems[0]?.startTime || "Bilgi Yok"} -
+            {orderDetails.orderItems[0]?.endTime || "Bilgi Yok"}
+          </span>
         </p>
       </div>
 
       {/* قائمة المنتجات */}
       <div className="bg-gray-50 p-4 rounded-lg shadow-inner mb-6">
-        <h3 className="text-gray-800 font-semibold mb-2">Ürünler:</h3>
-        <ul className="list-disc ml-6 space-y-2">
+        <h3 className="text-orange-400 font-semibold mb-2">Ürünler:</h3>
+        <ul className="space-y-4">
           {orderDetails.orderItems.map((item) => (
-            <li key={item.productId} className="text-gray-700">
-              {item.title} - Miktar: {item.quantity} - Fiyat: {item.price} TL
+            <li
+              key={item.productId}
+              className="bg-orange-100 rounded-md p-3 flex flex-col md:flex-row md:justify-between md:items-center space-y-2 md:space-y-0"
+            >
+              <div className="flex justify-between items-center md:block">
+                <span className="font-bold text-orange-600">{item.title}</span>
+              </div>
+              <div className="text-gray-500 text-sm md:mr-4">
+                Açıklama: {item.desc}
+              </div>
+              <div className="font-bold text-green-600 md:text-right">
+                Adet: {item.quantity}
+              </div>
             </li>
           ))}
         </ul>
       </div>
 
       {/* المجموع الكلي */}
-      <div className="bg-orange-50 p-4 rounded-lg text-orange-600 font-bold text-lg shadow-inner text-center">
+      <div className="bg-orange-50 p-4 rounded-lg text-green-600 font-bold text-lg md:text-xl shadow-inner text-center">
         <p>Toplam Tutar: {orderDetails.price} TL</p>
       </div>
     </div>

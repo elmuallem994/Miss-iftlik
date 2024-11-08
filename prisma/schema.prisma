@@ -39,6 +39,9 @@ model Product {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([catSlug])
+  @@index([title]) 
 }
 
 model Order {

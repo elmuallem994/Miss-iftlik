@@ -3,8 +3,9 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface OrderStore {
-  orderId: string | null;
-  setOrderId: (id: string) => void;
+  orderIds: string[]; // قائمة معرفات الطلبات
+  addOrderId: (id: string) => void;
+  removeOrderId: (id: string) => void;
 }
 
 type CartItemType = {
@@ -26,11 +27,16 @@ const INITIAL_STATE = {
 export const useOrderStore = create<OrderStore>()(
   persist(
     (set) => ({
-      orderId: null,
-      setOrderId: (id: string) => set({ orderId: id }),
+      orderIds: [],
+      addOrderId: (id: string) =>
+        set((state) => ({ orderIds: [...state.orderIds, id] })),
+      removeOrderId: (id: string) =>
+        set((state) => ({
+          orderIds: state.orderIds.filter((orderId) => orderId !== id),
+        })),
     }),
     {
-      name: "order-storage", // اسم المفتاح في localStorage
+      name: "order-storage",
     }
   )
 );
