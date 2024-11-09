@@ -65,39 +65,38 @@ const Price = ({ product }: { product: ProductType }) => {
   };
 
   return (
-    <div className="flex flex-col gap-4 items-center">
-      {/* حاوية العدد */}
+    <div className="flex flex-col gap-2 md:gap-4 items-center">
       {isEditing ? (
-        <div className="flex items-center gap-1 ">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button
             variant="destructive"
-            className="bg-orange-400 hover:bg-orange-500"
+            className="bg-orange-400 hover:bg-orange-500 p-2  rounded-md"
             size="sm"
             onClick={handleDecrease}
           >
-            <span className="text-2xl items-center  ">
+            <span className="text-lg md:text-2xl">
               {quantity === 1 ? <Trash2 size={16} className="text-lg" /> : "-"}
             </span>
           </Button>
           <Input
             value={quantity}
             readOnly
-            className="w-10 text-center text-white text-lg bg-orange-400"
+            className="w-8 md:w-10 text-center text-white text-sm md:text-lg bg-orange-400"
             aria-label="Current quantity"
           />
           <Button
             variant="destructive"
-            className="bg-orange-400 hover:bg-orange-500"
+            className="bg-orange-400 hover:bg-orange-500 p-2  rounded-md"
             size="sm"
             onClick={handleIncrease}
           >
-            <span className="text-2xl items-center pb-1 ">+</span>
+            <span className="text-lg md:text-2xl">+</span>
           </Button>
         </div>
       ) : (
         <Button
           variant="secondary"
-          className="bg-orange-50 text-black hover:bg-orange-200"
+          className="bg-orange-50 text-black hover:bg-orange-200 text-sm md:text-base p-2 md:p-3 rounded-md"
           onClick={handleAddToCart}
         >
           Sepete Ekle

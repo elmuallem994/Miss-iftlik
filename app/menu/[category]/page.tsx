@@ -86,14 +86,14 @@ const CategoryPage = ({ params }: Props) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 w-[70%] lg:w-[60%]">
+    <div className="main-content flex items-center justify-center py-8 md:py-12">
+      <div className="grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-screen-lg mx-auto px-2 sm:px-4">
         {products.map((item) => (
           <Card
             key={item.id}
-            className="flex flex-col items-center justify-between p-2 border-2 border-orange-500 rounded-lg shadow-lg bg-transparent"
+            className="flex flex-col items-center justify-between p-2 md:p-4 border-2 border-orange-500 rounded-lg shadow-lg bg-transparent w-full h-full mx-auto"
           >
-            <CardHeader className="relative w-full h-48">
+            <CardHeader className="relative w-full h-36 md:h-40 lg:h-48">
               {item.img && (
                 <Image
                   src={item.img}
@@ -104,11 +104,11 @@ const CategoryPage = ({ params }: Props) => {
               )}
             </CardHeader>
 
-            <CardContent className="flex flex-col items-center justify-between pt-5 w-full">
-              <CardTitle className="text-xl lg:text-3xl uppercase text-orange-500">
+            <CardContent className="flex flex-col items-center justify-between pt-2 w-full">
+              <CardTitle className="text-sm md:text-lg lg:text-2xl uppercase text-orange-500 text-center">
                 {item.title}
               </CardTitle>
-              <p className="text-sm lg:text-lg text-gray-700 text-center mt-2">
+              <p className="text-xs md:text-sm text-gray-300 text-center mt-1 md:mt-2 line-clamp-2 lg:line-clamp-3">
                 {item.desc}
               </p>
             </CardContent>
@@ -148,16 +148,11 @@ const CategoryPage = ({ params }: Props) => {
                 </AlertDialog>
               </CardFooter>
             ) : (
-              <CardFooter className="w-full">
-                <div className="flex justify-between items-center py-4 px-3 w-full">
-                  <h2
-                    className="text-lg lg:text-3xl text-white"
-                    style={{ width: "100px" }}
-                  >
-                    {item.price} TL
-                  </h2>
-                  <Price product={item} />
-                </div>
+              <CardFooter className="flex items-center justify-between w-full mt-2 md:mt-4 px-2">
+                <h2 className="text-lg  md:text-xl font-bold text-white">
+                  {item.price} TL
+                </h2>
+                <Price product={item} />
               </CardFooter>
             )}
           </Card>

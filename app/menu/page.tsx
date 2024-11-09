@@ -72,13 +72,13 @@ const MenuPage = () => {
           {menu.map((category) => (
             <div
               key={category.id}
-              className="w-full h-full flex flex-col items-center justify-between p-4 border-2 border-orange-500 rounded-lg shadow-lg relative"
+              className="w-full h-full flex flex-col items-center justify-between p-4 border-2 border-orange-500 rounded-lg shadow-lg  relative"
             >
               <Link
                 href={`/menu/${category.slug}`}
-                className="absolute inset-0 z-10"
+                className="absolute inset-0 z-10 rounded-lg overflow-hidden"
               />
-              <div className="relative w-full h-64">
+              <div className="relative w-full h-48 md:h-64 lg:h-72">
                 <Image
                   src={category.img}
                   alt={category.title}
@@ -86,10 +86,14 @@ const MenuPage = () => {
                   className="object-cover rounded-md"
                 />
               </div>
-              <div className="flex flex-col items-center justify-center text-center mt-4">
-                <h2 className="text-4xl font-bold">{category.title}</h2>
-                <p className="my-4 text-lg text-white">{category.desc}</p>
-                <button className="bg-orange-500 text-white py-2 px-4 rounded-md">
+              <div className="flex flex-col items-center justify-center text-center mt-4 px-2">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-orange-500">
+                  {category.title}
+                </h2>
+                <p className="my-2 md:my-4 text-sm md:text-lg text-gray-300">
+                  {category.desc}
+                </p>
+                <button className="bg-orange-500 text-white py-1 px-3 md:py-2 md:px-4 rounded-md hover:bg-orange-600 transition-all">
                   Keşfet
                 </button>
               </div>
