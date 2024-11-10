@@ -96,7 +96,7 @@ const OrdersPage = () => {
         <div className="mb-1 ml-4 flex justify-start">
           <input
             type="text"
-            placeholder="ابحث برقم الطلب"
+            placeholder="Sipariş numarasına göre ara"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full sm:w-1/2 md:w-1/3 p-2 border border-gray-300 rounded-md text-black"
@@ -126,7 +126,7 @@ const OrdersPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentOrders.map((order: OrderType, index) => (
+                {currentOrders.map((order: OrderType, index: number) => (
                   <tr
                     key={order.id}
                     className={`transition-all hover:bg-gray-100 ${
@@ -176,7 +176,7 @@ const OrdersPage = () => {
                             >
                               <FaEye size={22} />
                               <span className="text-xs mt-1 font-bold">
-                                تفاصيل الطلب
+                                Sipariş ayrıntıları
                               </span>
                             </button>
                           </AlertDialogTrigger>
@@ -326,38 +326,36 @@ const OrdersPage = () => {
                                     <h3 className="text-2xl font-semibold text-orange-400 mb-2">
                                       Ürünler
                                     </h3>
-                                    {selectedOrder.orderItems.map(
-                                      (product, index) => (
-                                        <div
-                                          key={product.productId}
-                                          className="mb-4 p-4 border rounded-lg bg-gray-50 shadow-sm"
-                                        >
-                                          <div className=" flex items-center justify-between">
-                                            <div className="flex items-center mb-2">
-                                              <span className="text-orange-600 border border-orange-600 rounded-lg px-2  items-center text-xl font-mono">
-                                                {product.title}
-                                              </span>
-                                            </div>
-                                            <div className="flex items-center text-gray-600 mb-2">
-                                              <span className="font-semibold text-lg text-orange-600 mr-2">
-                                                Adet :
-                                              </span>
-                                              <span className="font-semibold text-xl text-orange-600">
-                                                {product.quantity}
-                                              </span>
-                                            </div>
+                                    {selectedOrder.orderItems.map((product) => (
+                                      <div
+                                        key={product.productId}
+                                        className="mb-4 p-4 border rounded-lg bg-gray-50 shadow-sm"
+                                      >
+                                        <div className=" flex items-center justify-between">
+                                          <div className="flex items-center mb-2">
+                                            <span className="text-orange-600 border border-orange-600 rounded-lg px-2  items-center text-xl font-mono">
+                                              {product.title}
+                                            </span>
                                           </div>
-                                          {product.desc && (
-                                            <div className="text-gray-700">
-                                              <span className="font-semibold text-orange-600 mr-2">
-                                                Açıklama :
-                                              </span>
-                                              <span>{product.desc}</span>
-                                            </div>
-                                          )}
+                                          <div className="flex items-center text-gray-600 mb-2">
+                                            <span className="font-semibold text-lg text-orange-600 mr-2">
+                                              Adet :
+                                            </span>
+                                            <span className="font-semibold text-xl text-orange-600">
+                                              {product.quantity}
+                                            </span>
+                                          </div>
                                         </div>
-                                      )
-                                    )}
+                                        {product.desc && (
+                                          <div className="text-gray-700">
+                                            <span className="font-semibold text-orange-600 mr-2">
+                                              Açıklama :
+                                            </span>
+                                            <span>{product.desc}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
                                   </div>
 
                                   <div className="text-green-600 text-2xl font-semibold mt-4">
@@ -392,11 +390,11 @@ const OrdersPage = () => {
                 className="bg-orange-50 p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105"
               >
                 <h3 className="text-2xl font-bold mb-4 text-orange-600">
-                  <span className="text-gray-700">رقم الطلب:</span> #{" "}
+                  <span className="text-gray-700">Sipariş numarası :</span> #{" "}
                   {order.id.replace(/\D/g, "").slice(-4)}
                 </h3>
                 <p className="mb-2 text-gray-600">
-                  <strong className="text-orange-600">تاريخ الطلب:</strong>{" "}
+                  <strong className="text-orange-600">Sipariş tarihi :</strong>{" "}
                   <span className="text-gray-800">
                     {new Date(order.createdAt).toLocaleDateString("en-GB", {
                       timeZone: "Asia/Istanbul",
@@ -404,11 +402,11 @@ const OrdersPage = () => {
                   </span>
                 </p>
                 <p className="mb-2 text-gray-600">
-                  <strong className="text-orange-600">معلومات المستلم:</strong>{" "}
+                  <strong className="text-orange-600">Alıcı bilgileri :</strong>{" "}
                   <span className="text-gray-800">{order.recipientInfo}</span>
                 </p>
                 <p className="mb-2 text-gray-600">
-                  <strong className="text-orange-600">الحالة:</strong>
+                  <strong className="text-orange-600">Durumu :</strong>
                   <span
                     className={`px-2 py-1 ml-2 rounded-full font-semibold ${
                       order.status === "teslim edildi"
@@ -426,7 +424,9 @@ const OrdersPage = () => {
                       onClick={() => setSelectedOrder(order)}
                     >
                       <FaEye size={22} className="inline" />
-                      <span className="ml-2 font-semibold">تفاصيل الطلب</span>
+                      <span className="ml-2 font-semibold">
+                        Sipariş Detayları
+                      </span>
                     </button>
                   </AlertDialogTrigger>
 
@@ -570,7 +570,7 @@ const OrdersPage = () => {
                             <h3 className="text-2xl font-semibold text-orange-400 mb-2">
                               Ürünler
                             </h3>
-                            {selectedOrder.orderItems.map((product, index) => (
+                            {selectedOrder.orderItems.map((product) => (
                               <div
                                 key={product.productId}
                                 className="mb-4 p-4 border rounded-lg bg-gray-50 shadow-sm"
@@ -630,10 +630,10 @@ const OrdersPage = () => {
             disabled={currentPage === 1}
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
           >
-            السابق
+            önceki
           </button>
           <span className="text-gray-700">
-            الصفحة {currentPage} من {totalPages}
+            Sayfa {currentPage} - {totalPages}
           </span>
           <button
             onClick={() =>
@@ -642,7 +642,7 @@ const OrdersPage = () => {
             disabled={currentPage === totalPages}
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
           >
-            التالي
+            sonraki
           </button>
         </div>
       </div>

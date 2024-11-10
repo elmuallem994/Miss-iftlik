@@ -39,14 +39,13 @@ export const PUT = async (
 ) => {
   try {
     const { id } = params;
-    const { title, desc, color, img, slug } = await req.json();
+    const { title, desc, img, slug } = await req.json();
 
     const updatedCategory = await prisma.category.update({
       where: { id },
       data: {
         title,
         desc,
-        color,
         img,
         slug,
       },

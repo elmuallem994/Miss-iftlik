@@ -19,33 +19,39 @@ const Categories = () => {
   ];
 
   return (
-    <div className="min-h-screen container mx-auto flex flex-col justify-center items-center">
-      <div className="text-center pt-14 mt-4 mb-6">
-        <h1 className="glowing-text  text-8xl text-white font-extralight">
+    <div className="min-h-screen container mx-auto flex flex-col justify-center items-center px-4">
+      <div className="text-center pt-14 mt-1 pb-16">
+        <h1 className="glowing-text text-4xl md:text-5xl lg:text-6xl text-white font-bold">
           Günlük Taze
         </h1>
-        <p className="mt-6 text-lg text-gray-100">
-          Türkiye bölgesinin benzersiz topraklarından gelen çiftlikten
-          tazelenmiş، sizlere en doğal tadıyla ve doğallığı ile sunmaktayız.
-          Hızlı، güvenilir ve doğal ürünlerimizle beyazdan yeşile...
+        <p className="mt-10 text-base md:text-lg lg:text-xl text-gray-100 max-w-2xl mx-auto">
+          Türkiye nin bereketli topraklarından doğanın sunduğu en taze ve doğal
+          ürünleri sizler için özenle topladık. Çiftlikten sofranıza ulaşan bu
+          ürünlerle, lezzet ve sağlık dolu bir yaşam sunuyoruz. Doğal
+          lezzetlerin tadını çıkarın ve sağlıklı bir yaşam için güvenle tercih
+          edin
         </p>
       </div>
-      <Carousel opts={{ align: "center" }} className="w-full max-w-4xl">
+
+      <Carousel
+        opts={{ align: "center" }}
+        className="w-full max-w-4xl space-y-4"
+      >
         <CarouselContent>
           {categories.map((category) => (
             <CarouselItem
               key={category.id}
-              className=" basis-[63%] md:basis-1/2 lg:basis-1/3"
+              className="flex basis-[90%] sm:basis-[45%] md:basis-[30%] px-2"
             >
-              <div className="p-1">
-                <Card>
-                  <CardContent className="bg-orange-100 flex aspect-square items-center justify-center p-6">
+              <div className="transition-transform duration-300 transform hover:scale-105">
+                <Card className="rounded-lg shadow-lg">
+                  <CardContent className="bg-gradient-to-r from-orange-50 to-orange-100 flex aspect-square items-center justify-center p-4 rounded-lg">
                     <Image
                       src={category.image}
                       alt={category.title}
-                      width={400} // Adjusted width
-                      height={300} // Adjusted height
-                      className=" object-contain "
+                      width={400}
+                      height={300}
+                      className="object-contain"
                     />
                   </CardContent>
                 </Card>
@@ -53,8 +59,9 @@ const Categories = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+
+        <CarouselPrevious className="text-gray-600 hover:text-gray-800" />
+        <CarouselNext className="text-gray-600 hover:text-gray-800" />
       </Carousel>
     </div>
   );

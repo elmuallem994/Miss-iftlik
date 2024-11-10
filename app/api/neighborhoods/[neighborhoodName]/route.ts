@@ -27,7 +27,7 @@ export const GET = async (
         .split(",")
         .map((day) => day.trim());
     } else if (Array.isArray(neighborhoodData.deliveryDays)) {
-      deliveryDaysArray = neighborhoodData.deliveryDays.flatMap((day: any) =>
+      deliveryDaysArray = neighborhoodData.deliveryDays.flatMap((day) =>
         typeof day === "string"
           ? day.split(",").map((d: string) => d.trim())
           : []

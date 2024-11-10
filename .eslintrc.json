@@ -1,3 +1,13 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "overrides": [
+    {
+      "files": ["app/add/page.tsx", "app/add/[id]/page.tsx"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "@typescript-eslint/ban-ts-comment": "off"
+      }
+    }
+  ]
 }

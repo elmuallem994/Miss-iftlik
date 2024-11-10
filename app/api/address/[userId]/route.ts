@@ -35,6 +35,7 @@ export const GET = async (
       endTime: address.region.endTime, // إضافة وقت الانتهاء من المنطقة
     });
   } catch (error) {
+    console.error("Error fetching address:", error);
     return NextResponse.json(
       { message: "Error fetching address" },
       { status: 500 }

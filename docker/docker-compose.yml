@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   db:
     image: mysql
@@ -16,3 +18,22 @@ services:
       MYSQL_ROOT_PASSWORD: mypassword1
     ports:
       - "8080:80"
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: "mysql://root:mypassword1@db:3306/missciftlik"
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_live_Y2xlcmsubWlzc2NpZnRsaWsuY29tJA"
+      CLERK_SECRET_KEY: "sk_live_pbaETjp8KkP3xmII68XagH9CAcxMeQ2rxUEgJBhSS9"
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: "/sign-in"
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: "/sign-up"
+      NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: "/address"
+      NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL: "/address"
+      NEXT_PUBLIC_API_BASE_URL: "https://www.missciftlik.com"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db

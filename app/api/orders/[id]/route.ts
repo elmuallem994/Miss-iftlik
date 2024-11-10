@@ -54,7 +54,10 @@ export const GET = async (
   } catch (err) {
     console.error("Error fetching order details:", err);
     return new NextResponse(
-      JSON.stringify({ message: "Something went wrong!", error: err.message }),
+      JSON.stringify({
+        message: "Something went wrong!",
+        error: (err as Error).message,
+      }),
       { status: 500 }
     );
   }

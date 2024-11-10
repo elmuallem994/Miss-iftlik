@@ -99,7 +99,7 @@ const CartPage = () => {
         const neighborhoods = regionData.neighborhoods; // تأكد من إحضار endTime من regionData
 
         const addressResponse = await fetch(
-          `http://localhost:3000/api/address/${user?.id}`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/address/${user?.id}`
         );
         const addressData = await addressResponse.json();
         const addressId = addressData?.addressId;
@@ -193,7 +193,11 @@ const CartPage = () => {
       };
     } catch (error) {
       console.log(error);
-      setError(error.message);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Bir hata oluştu");
+      }
       return null;
     } finally {
       setLoading(false); // إيقاف حالة التحميل عند انتهاء الجلب
@@ -235,6 +239,8 @@ const CartPage = () => {
       const data = await response.json();
       setDeliveryDays(data.deliveryDays);
 
+      console.log(deliveryDays);
+
       // إضافة startTime و endTime إلى الحالة
       setRegionName(`${data.regionName} - ${data.neighborhoods}`);
       setStartTime(data.startTime); // حفظ وقت البدء
@@ -244,7 +250,11 @@ const CartPage = () => {
       const sortedDates = calculatedDates.sort(compareAsc);
       setDeliveryDates(sortedDates);
     } catch (error) {
-      setError(error.message || "Teslimat günleri alınırken bir hata oluştu");
+      if (error instanceof Error) {
+        setError(error.message || "Teslimat günleri alınırken bir hata oluştu");
+      } else {
+        setError("Teslimat günleri alınırken bir hata oluştu");
+      }
     } finally {
       setLoading(false);
     }

@@ -118,7 +118,10 @@ export const POST = async (req: NextRequest) => {
   } catch (err) {
     console.log("Error:", err); // طباعة تفاصيل الخطأ في الكونسول
     return new NextResponse(
-      JSON.stringify({ message: "Something went wrong!", error: err.message }),
+      JSON.stringify({
+        message: "Something went wrong!",
+        error: (err as Error).message, // تحويل err إلى Error للوصول إلى الرسالة
+      }),
       { status: 500 }
     );
   }
