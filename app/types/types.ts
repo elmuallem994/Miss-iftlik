@@ -59,7 +59,6 @@ export type ProductType = {
   price: number;
   optionTitle?: string;
   quantity: number;
-  catSlug: string; // إضافة هذا الحقل
 };
 
 export type CartItemType = {

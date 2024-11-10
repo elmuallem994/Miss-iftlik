@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { trTR } from "@clerk/localizations";
 import OrderStatusBar from "@/components/OrderStatusBar";
 import "./globals.css";
+import CartIcon from "@/components/CartIcon";
 
 export const metadata: Metadata = {
   title: "Miss Ciftlik",
@@ -26,15 +27,16 @@ export default function RootLayout({
     <ClerkProvider localization={trTR}>
       <QueryProvider>
         <html lang="tr">
-          {/** bg-primary-black text-secondary-white */}
-          <body className="bg-primary-black antialiased ">
-            <div className="main-container">
+          {/** bg-primary-black bg-gray-900 min-h-screen  text-secondary-white */}
+          <body className="bg-gray-900 antialiased ">
+            <div className="main-container ">
               <Notification />
               <Navbar />
               <OrderStatusBar />
               <LoadingHandler />
               <div className="content">{children}</div>
-              <Footer className="footer" />
+              <CartIcon /> {/* إضافة أيقونة السلة هنا */}
+              <Footer />
             </div>
             <ToastContainer
               position="bottom-right"

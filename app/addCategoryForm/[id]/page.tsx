@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 
 import AddCategoryForm from "../page";
+import { useLoadingStore } from "@/utils/store";
 
 const EditCategoryPage = ({ params }: { params: { id: string } }) => {
   const [categoryData, setCategoryData] = useState(null);
+  const setLoading = useLoadingStore((state) => state.setLoading);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
+      setLoading(true); // تفعيل التحميل عند بدء جلب البيانات
       try {
         const res = await fetch(
           `http://localhost:3000/api/categories/${params.id}`
@@ -20,11 +23,13 @@ const EditCategoryPage = ({ params }: { params: { id: string } }) => {
         setCategoryData(data);
       } catch (error) {
         console.error("Error fetching category data:", error);
+      } finally {
+        setLoading(false); // إيقاف التحميل عند الانتهاء
       }
     };
 
     fetchCategoryData();
-  }, [params.id]);
+  }, [params.id, setLoading]);
 
   if (!categoryData) {
     return <p>Loading...</p>;

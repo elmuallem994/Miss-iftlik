@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 
 const featuredProducts = [
@@ -86,9 +87,11 @@ const Featured = () => {
         </div>
       </div>
       <div className="text-center mt-8">
-        <button className="bg-orange-500 text-white py-2 px-4 rounded-md">
-          Daha Fazlasını Göster
-        </button>
+        <Link href="/menu">
+          <button className="bg-orange-500 text-white py-2 px-4 rounded-md">
+            Daha Fazlasını Göster
+          </button>
+        </Link>
       </div>
     </div>
   );

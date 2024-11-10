@@ -78,6 +78,7 @@ const AddPage = ({ productData }: AddPageProps) => {
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoading(true);
       try {
         const res = await fetch("http://localhost:3000/api/categories");
         if (!res.ok) {
@@ -88,11 +89,13 @@ const AddPage = ({ productData }: AddPageProps) => {
       } catch (error) {
         console.error(error);
         toast.error("فشل جلب الفئات.");
+      } finally {
+        setLoading(false); // Stop loading after fetching categories
       }
     };
 
     fetchCategories();
-  }, [isSignedIn, user, router]);
+  }, [isSignedIn, user, router, setLoading]);
 
   const handleChangeImg = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = (e.target.files as FileList)[0];
@@ -102,23 +105,32 @@ const AddPage = ({ productData }: AddPageProps) => {
   };
 
   const upload = async () => {
-    const data = new FormData();
-    data.append("file", file!);
-    data.append("upload_preset", "missciftlik");
+    setLoading(true); // Start loading for image upload
+    try {
+      const data = new FormData();
+      data.append("file", file!);
+      data.append("upload_preset", "missciftlik");
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dmdupmxws/image/upload",
-      {
-        method: "POST",
-        body: data,
-      }
-    );
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dmdupmxws/image/upload",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
 
-    const resData = await res.json();
-    return resData.url;
+      const resData = await res.json();
+      return resData.url;
+    } catch (error) {
+      toast.error("حدث خطأ أثناء رفع الصورة.");
+      throw error; // إعادة الخطأ لإيقاف عملية الحفظ إذا فشل رفع الصورة
+    } finally {
+      setLoading(false); // Stop loading after image upload
+    }
   };
 
   const handleSubmit = async (data: ProductFormValues) => {
+    setLoading(true);
     try {
       setLoading(true); // Start loading
       // If there's no image file and it's a new product, show an error message
@@ -161,7 +173,7 @@ const AddPage = ({ productData }: AddPageProps) => {
       console.log(err);
       toast.error("حدث خطأ أثناء حفظ المنتج.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false); // Stop loading after saving product
     }
   };
 

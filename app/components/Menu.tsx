@@ -6,12 +6,12 @@ import {
   SheetTrigger,
   SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { MenuIcon } from "lucide-react";
 import Link from "next/link";
 import CartIcon from "./CartIcon";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "./ui/separator";
 
 const links = [
@@ -25,12 +25,9 @@ const Menu = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          className="ml-auto mr-4 bg-orange-400 text-white rounded-full"
-        >
-          <MenuIcon className="text-white" />
-        </Button>
+        <button className="ml-auto  mr-4 p-2 bg-orange-400 rounded-2xl">
+          <MenuIcon className="text-white  " />
+        </button>
       </SheetTrigger>
       <SheetContent
         side="left"
@@ -47,18 +44,20 @@ const Menu = () => {
 
         <div className="flex flex-col gap-2 items-center text-lg w-full max-w-xs mx-auto">
           {links.map((item) => (
-            <Link
-              href={item.url}
-              key={item.id}
-              className="hover:underline text-white bg-orange-400 text-center rounded-2xl py-2 w-full"
-              style={{
-                paddingLeft: "1rem",
-                paddingRight: "1rem",
-                margin: "0.5rem 0",
-              }}
-            >
-              {item.title}
-            </Link>
+            <SheetClose asChild key={item.id}>
+              <Link
+                href={item.url}
+                key={item.id}
+                className="hover:underline text-white bg-orange-400 text-center rounded-2xl py-2 w-full"
+                style={{
+                  paddingLeft: "1rem",
+                  paddingRight: "1rem",
+                  margin: "0.5rem 0",
+                }}
+              >
+                {item.title}
+              </Link>
+            </SheetClose>
           ))}
         </div>
 

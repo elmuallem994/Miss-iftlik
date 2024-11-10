@@ -3,21 +3,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import LoadingSpinner from "../../components/ui/loadingSpinner";
 import OrderStatus from "@/components/orderStatus";
 import { OrderType } from "../../types/types";
 import Image from "next/image";
+import { useLoadingStore } from "@/utils/store"; // استيراد useLoadingStore
 
 const OrderDetails = ({ params }: { params: { orderId: string } }) => {
   const { orderId } = params;
 
   const [orderDetails, setOrderDetails] = useState<OrderType | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const setLoading = useLoadingStore((state) => state.setLoading); // تفعيل setLoading من store
 
   useEffect(() => {
     if (!orderId) return;
 
     const fetchOrderDetails = async () => {
+      setLoading(true); // تفعيل مؤشر التحميل عند بدء جلب البيانات
       try {
         const response = await fetch(
           `http://localhost:3000/api/orders/${orderId}`
@@ -27,14 +29,12 @@ const OrderDetails = ({ params }: { params: { orderId: string } }) => {
       } catch (error) {
         console.error("Error fetching order details:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false); // إيقاف مؤشر التحميل عند الانتهاء
       }
     };
 
     fetchOrderDetails();
-  }, [orderId]);
-
-  if (isLoading) return <LoadingSpinner />;
+  }, [orderId, setLoading]);
 
   if (!orderDetails) return <p>لم يتم العثور على الطلب.</p>;
 

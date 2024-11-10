@@ -30,6 +30,7 @@ import { Pencil, MapPin } from "lucide-react";
 import { Button } from "../components/ui/button";
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
+import { useLoadingStore } from "@/utils/store";
 
 // Define the Region type
 type Region = {
@@ -48,7 +49,7 @@ const addressSchema = z.object({
 type AddressFormValues = z.infer<typeof addressSchema>;
 
 const AddressPage: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const { setLoading, isLoading } = useLoadingStore();
   const [regions, setRegions] = useState<Region[]>([]); // Array of regions
   const { isSignedIn } = useUser();
   const router = useRouter();
@@ -69,6 +70,7 @@ const AddressPage: React.FC = () => {
   useEffect(() => {
     const fetchRegions = async () => {
       try {
+        setLoading(true);
         const res = await fetch("http://localhost:3000/api/regions");
         const data: Region[] = await res.json();
 
@@ -76,11 +78,14 @@ const AddressPage: React.FC = () => {
         setRegions(data);
       } catch (error) {
         console.error("Error fetching regions:", error);
+      } finally {
+        setLoading(false); // Stop loading after fetching
       }
     };
 
     const fetchAddress = async () => {
       try {
+        setLoading(true);
         const res = await fetch("http://localhost:3000/api/address");
         if (res.ok) {
           const data: AddressFormValues[] = await res.json();
@@ -93,12 +98,14 @@ const AddressPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching address:", error);
+      } finally {
+        setLoading(false); // Stop loading after fetching
       }
     };
 
     fetchRegions();
     fetchAddress();
-  }, [form]);
+  }, [form, setLoading]);
 
   // Handle form submission for creating a new address
   const createAddress = async (data: AddressFormValues) => {
@@ -194,6 +201,7 @@ const AddressPage: React.FC = () => {
                 <Button
                   className="px-4 py-2  bg-orange-500 text-white rounded-full shadow-md hover:bg-orange-600 transition-colors"
                   onClick={() => setIsEditModalOpen(true)}
+                  disabled={isLoading}
                 >
                   <Pencil className="w-5 h-5 mr-2" />
                   <span className="text-sm font-medium">Düzenle</span>
@@ -281,7 +289,7 @@ const AddressPage: React.FC = () => {
                     </FormLabel>
                     <FormControl>
                       <select
-                        disabled={loading}
+                        disabled={isLoading}
                         {...field}
                         className="p-2 border rounded w-full"
                         onChange={(e) => {
@@ -310,7 +318,7 @@ const AddressPage: React.FC = () => {
                     <FormLabel className="text-orange-400">Tam Adres</FormLabel>
                     <FormControl>
                       <Input
-                        disabled={loading}
+                        disabled={isLoading}
                         placeholder="Tam Adres"
                         {...field}
                       />
@@ -321,7 +329,7 @@ const AddressPage: React.FC = () => {
               />
               <div className="flex flex-col space-y-4 mt-4">
                 <Button
-                  disabled={loading}
+                  disabled={isLoading}
                   className="w-full text-md bg-orange-600 hover:bg-orange-700 text-white rounded-lg py-2"
                   type="submit"
                 >

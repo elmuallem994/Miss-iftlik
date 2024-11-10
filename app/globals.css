@@ -309,3 +309,17 @@ body {
   background-color: #ff7300; /* اللون البرتقالي المتحرك */
   animation: slideRestart 1.5s linear infinite; /* تشغيل الحركة بشكل متواصل */
 }
+
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 1.1s infinite;
+}

@@ -260,7 +260,7 @@ const CartPage = () => {
 
       {/* قسم المنتجات */}
 
-      <div className="w-full lg:w-2/3 p-6 bg-primary-black shadow-md lg:shadow-none border border-gray-700 ">
+      <div className="w-full lg:w-2/3 p-6 bg-gray-900 shadow-md lg:shadow-none border border-gray-700 ">
         <h1 className="block sm:hidden  glowing-text text-center text-3xl   pb-4 text-white font-bold mb-12">
           Sepetim
         </h1>
@@ -310,7 +310,7 @@ const CartPage = () => {
       </div>
 
       {/* قسم ملخص السلة */}
-      <div className="w-full lg:w-1/3 p-6 bg-primary-black flex flex-col gap-6 shadow-md mt-4 md:mt-0 lg:ml-4">
+      <div className="w-full lg:w-1/3 p-6 bg-gray-800 flex flex-col gap-6 shadow-md mt-4 md:mt-0 lg:ml-4">
         <div className="text-2xl font-semibold text-orange-400 mb-4">
           Sipariş Özeti
         </div>

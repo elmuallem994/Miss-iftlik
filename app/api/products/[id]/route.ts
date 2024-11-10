@@ -47,8 +47,9 @@ export const PUT = async (
   }
 
   try {
+    const client = clerkClient(); // استدعاء clerkClient كدالة
     // Get user information from Clerk
-    const user = await clerkClient.users.getUser(userId);
+    const user = await client.users.getUser(userId);
 
     // Check if the user has the admin role using Clerk's publicMetadata
     if (user?.publicMetadata?.role === "admin") {
@@ -104,8 +105,9 @@ export const DELETE = async (
   }
 
   try {
+    const client = clerkClient(); // استدعاء clerkClient كدالة
     // الحصول على بيانات المستخدم من Clerk
-    const user = await clerkClient.users.getUser(userId);
+    const user = await client.users.getUser(userId);
 
     // تحقق من الدور باستخدام Clerk publicMetadata
     if (user?.publicMetadata?.role === "admin") {

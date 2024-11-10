@@ -61,7 +61,7 @@ const Price = ({ product }: { product: ProductType }) => {
       quantity,
     });
     setIsEditing(true); // إظهار التحكم في الكمية
-    toast.success("The product has been added to the cart!"); // إظهار رسالة تأكيد
+    toast.success("Ürün sepete eklendi !"); // إظهار رسالة تأكيد
   };
 
   return (

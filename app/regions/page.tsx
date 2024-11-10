@@ -6,6 +6,7 @@ import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { toast } from "react-toastify";
 import { FaEdit, FaTrash } from "react-icons/fa"; // مكتبة الأيقونات
+import { useLoadingStore } from "@/utils/store";
 
 type EntryType = {
   id: number; // إضافة حقل 'id' هنا
@@ -34,6 +35,7 @@ const ManageLocations = () => {
   const [endTime, setEndTime] = useState("");
   const [entries, setEntries] = useState<EntryType[]>([]);
   const [editingRegionId, setEditingRegionId] = useState<number | null>(null);
+  const setLoading = useLoadingStore((state) => state.setLoading);
 
   // Handle day selection
   const handleDayChange = (day: string, isChecked: boolean) => {
@@ -45,6 +47,7 @@ const ManageLocations = () => {
   // Fetch existing entries from API on page load
   useEffect(() => {
     const fetchEntries = async () => {
+      setLoading(true); // تفعيل التحميل عند بدء الجلب
       try {
         const response = await fetch("http://localhost:3000/api/regions", {
           method: "GET",
@@ -59,11 +62,13 @@ const ManageLocations = () => {
       } catch (error) {
         toast.error("فشل تحميل الإدخالات");
         console.error("Error fetching entries:", error);
+      } finally {
+        setLoading(false); // إيقاف التحميل عند الانتهاء
       }
     };
 
     fetchEntries();
-  }, []);
+  }, [setLoading]);
 
   // Handle adding new entry and saving it to API
   const handleAddEntry = async () => {
@@ -135,6 +140,8 @@ const ManageLocations = () => {
       endTime: endTime,
     };
 
+    setLoading(true); // تفعيل التحميل عند بدء الإضافة
+
     try {
       const response = await fetch(
         `http://localhost:3000/api/regions/${regionId}`,
@@ -171,10 +178,13 @@ const ManageLocations = () => {
     } catch (error) {
       console.error("Error updating region:", error);
       toast.error("حدث خطأ أثناء تحديث المنطقة.");
+    } finally {
+      setLoading(false); // إيقاف التحميل عند الانتهاء
     }
   };
 
   const handleDelete = async (regionId: number) => {
+    setLoading(true); // تفعيل التحميل عند بدء الحذف
     try {
       const response = await fetch(
         `http://localhost:3000/api/regions/${regionId}`,
@@ -194,6 +204,8 @@ const ManageLocations = () => {
     } catch (error) {
       console.error("Error deleting region:", error);
       toast.error("حدث خطأ أثناء حذف المنطقة.");
+    } finally {
+      setLoading(false); // إيقاف التحميل عند الانتهاء
     }
   };
 

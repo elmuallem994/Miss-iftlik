@@ -1,7 +1,7 @@
 import {
+  clerkClient,
   clerkMiddleware,
   createRouteMatcher,
-  clerkClient,
 } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
@@ -32,8 +32,10 @@ export default clerkMiddleware(async (auth, req) => {
       return redirectToSignIn(); // إعادة التوجيه إلى صفحة تسجيل الدخول إذا لم يكن مسجل دخول
     }
 
+    // استدعاء clerkClient كدالة للحصول على المستخدم
+    const client = clerkClient();
     // جلب بيانات المستخدم للتحقق من الدور
-    const user = await clerkClient.users.getUser(userId);
+    const user = await client.users.getUser(userId);
 
     // التحقق من دور "admin"
     if (user?.publicMetadata?.role !== "admin") {

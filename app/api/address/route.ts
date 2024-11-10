@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
 
     // إذا لم يكن المستخدم موجودًا، قم بإنشائه
     if (!user) {
-      const clerkUser = await clerkClient.users.getUser(userId);
+      const client = clerkClient(); // استدعاء clerkClient كدالة
+      const clerkUser = await client.users.getUser(userId);
       user = await prisma.user.create({
         data: {
           id: userId,

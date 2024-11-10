@@ -40,8 +40,10 @@ export const GET = async (
       });
     }
 
+    const client = clerkClient(); // استدعاء clerkClient كدالة
+
     // التحقق مما إذا كان المستخدم الحالي هو نفس صاحب الطلب أو مشرف
-    const user = await clerkClient().users.getUser(userId);
+    const user = await client.users.getUser(userId);
     if (user.publicMetadata.role !== "admin" && order.userId !== userId) {
       return new NextResponse(JSON.stringify({ message: "Forbidden" }), {
         status: 403,
